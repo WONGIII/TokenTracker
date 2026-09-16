@@ -1,6 +1,10 @@
  <div align="center">
 
-# Token Tracker
+<img src="./docs/logo.svg" alt="TokenTracker ZzH" width="132" />
+
+# TokenTracker ZzH
+
+**This is my own custom-tuned build of [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** — the same tracker with my own changes on top: a self-hosted cloud backend (`tt.977744.xyz`), ZzH as the default desktop pet, no OAuth, and its own deep-link scheme, port and icon so it can sit next to the original without either build hijacking the other.
 
 **English** · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 

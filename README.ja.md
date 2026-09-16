@@ -1,6 +1,10 @@
  <div align="center">
 
-# Token Tracker
+<img src="./docs/logo.svg" alt="TokenTracker ZzH" width="132" />
+
+# TokenTracker ZzH
+
+**これは [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker) の自分用カスタム版です** —— 同じトラッカーに、自前のクラウドバックエンド（`tt.977744.xyz`）、デフォルトペットの ZzH、OAuth なし、独自のディープリンク・ポート・アイコンを加えて、本家と共存できるようにしました。
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · **日本語** · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 

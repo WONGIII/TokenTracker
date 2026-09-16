@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="TokenTracker ZzH">
+  <title>TokenTracker ZzH</title>
+  <rect x="4" y="4" width="504" height="504" rx="112" fill="#ffffff" stroke="#e2e2e8" stroke-width="8"/>
+  <path fill="#ff6fa5" d="M126 126H386V194H126Z"/>
+  <path fill="#ff6fa5" d="M126 318H386V386H126Z"/>
+  <path fill="#ff6fa5" d="M318 194H386L194 318H126Z"/>
+</svg>

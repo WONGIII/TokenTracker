@@ -21,9 +21,11 @@ $RepoRoot  = Split-Path -Parent $WinProjDir
 $AssetsDir = Join-Path $WinProjDir 'assets'
 New-Item -ItemType Directory -Force -Path $AssetsDir | Out-Null
 
-# The pet is pink (see PetPage.jsx / ZzH), so the mark is too.
+# Pink "Z" on a white rounded square (the pet is pink — see PetPage.jsx / ZzH).
 $PINK = [System.Drawing.Color]::FromArgb(255, 255, 111, 165)
 $WHITE = [System.Drawing.Color]::White
+# A hairline edge so the white square still reads on a white taskbar / page.
+$EDGE = [System.Drawing.Color]::FromArgb(255, 226, 226, 232)
 
 function New-Pt([single]$x, [single]$y) { New-Object System.Drawing.PointF($x, $y) }
 
@@ -72,11 +74,16 @@ function New-IconBitmap([int]$size) {
     $path.AddArc($size - $d, $size - $d, $d, $d, 0, 90)
     $path.AddArc(0, $size - $d, $d, $d, 90, 90)
     $path.CloseFigure()
-    $bg = New-Object System.Drawing.SolidBrush($PINK)
+    $bg = New-Object System.Drawing.SolidBrush($WHITE)
     $g.FillPath($bg, $path)
+    if ($size -ge 24) {
+        $pen = New-Object System.Drawing.Pen($EDGE, [single]([math]::Max(1, $size / 128)))
+        $g.DrawPath($pen, $path)
+        $pen.Dispose()
+    }
 
     $z = Build-Z ([single]($size / 1024.0))
-    $fg = New-Object System.Drawing.SolidBrush($WHITE)
+    $fg = New-Object System.Drawing.SolidBrush($PINK)
     $g.FillPath($fg, $z)
 
     $bg.Dispose(); $fg.Dispose(); $z.Dispose(); $path.Dispose(); $g.Dispose()
@@ -114,3 +121,31 @@ function Save-Ico([int[]]$sizes, [string]$outPath) {
 
 Save-Ico @(256, 64, 48, 32, 16) (Join-Path $AssetsDir 'trayicon.ico')
 Save-Ico @(64, 48, 32, 16) (Join-Path $RepoRoot 'dashboard\public\favicon.ico')
+
+# The tray no longer uses the upstream Clawd glyph: the notification area shows
+# this app's own mark, in both taskbar themes. (make-tray-mascot.ps1 is gone.)
+Save-Ico @(32, 24, 20, 16) (Join-Path $AssetsDir 'tray-mascot-onDark.ico')
+Save-Ico @(32, 24, 20, 16) (Join-Path $AssetsDir 'tray-mascot-onLight.ico')
+
+$logoDir = Join-Path $RepoRoot 'docs'
+New-Item -ItemType Directory -Force -Path $logoDir | Out-Null
+
+function Save-Png([int]$size, [string]$outPath) {
+    $bmp = New-IconBitmap $size
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $outPath) | Out-Null
+    $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bmp.Dispose()
+    Write-Host "Wrote $outPath"
+}
+
+Save-Png 512 (Join-Path $logoDir 'logo.png')
+
+# The dashboard ships its own copies (PWA + touch icons + the marketing page), so
+# regenerate them from the same source rather than leaving upstream's mark around.
+$pub = Join-Path $RepoRoot 'dashboard\public'
+Save-Png 512 (Join-Path $pub 'app-icon.png')
+Save-Png 180 (Join-Path $pub 'apple-touch-icon.png')
+Save-Png 512 (Join-Path $pub 'icon-512.png')
+Save-Png 192 (Join-Path $pub 'icon-192.png')
+Save-Png 32 (Join-Path $pub 'favicon-32.png')
+Save-Png 16 (Join-Path $pub 'favicon-16.png')

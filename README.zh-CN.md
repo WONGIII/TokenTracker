@@ -1,6 +1,10 @@
  <div align="center">
 
-# Token Tracker
+<img src="./docs/logo.svg" alt="TokenTracker ZzH" width="132" />
+
+# TokenTracker ZzH
+
+**这是我自己特调版的 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** —— 同一个追踪器，加了我要的东西：自建云端后端（`tt.977744.xyz`）、默认桌宠换成 ZzH、去掉 OAuth，并且有独立的深链接协议、端口和图标，可以和原版装在同一台机器上互不干扰。
 
 [English](./README.md) · **简体中文** · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 

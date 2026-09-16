@@ -1,6 +1,10 @@
  <div align="center">
 
-# Token Tracker
+<img src="./docs/logo.svg" alt="TokenTracker ZzH" width="132" />
+
+# TokenTracker ZzH
+
+**이것은 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)의 개인 커스텀 빌드입니다** —— 같은 트래커에 자체 클라우드 백엔드(`tt.977744.xyz`), 기본 펫 ZzH, OAuth 제거, 독자적인 딥링크·포트·아이콘을 적용해 원본과 나란히 설치할 수 있습니다.
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · **한국어** · [Deutsch](./README.de.md)
 
