@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 
-const { resolveRuntimeConfig } = require("../src/lib/runtime-config");
+const { resolveRuntimeConfig, DEFAULT_BASE_URL } = require("../src/lib/runtime-config");
 
 test("resolveRuntimeConfig prefers CLI flags over config and env", () => {
   const config = { baseUrl: "https://config.example", deviceToken: "cfg" };
@@ -35,7 +35,10 @@ test("resolveRuntimeConfig recovers from the leaked Windows test base URL", () =
     env: {},
   });
 
-  assert.equal(recovered.baseUrl, "https://srctyff5.us-east.insforge.app");
+  // FORK: this used to name upstream's project, which WAS the default back then.
+  // The assertion is about falling back to the default at all, so it compares
+  // against the constant — otherwise it breaks (and hides) every rebranding.
+  assert.equal(recovered.baseUrl, DEFAULT_BASE_URL);
   assert.equal(recovered.sources.baseUrl, "default");
 
   const explicit = resolveRuntimeConfig({

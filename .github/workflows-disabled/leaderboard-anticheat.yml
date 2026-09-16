@@ -22,7 +22,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     env:
-      API: https://srctyff5.us-east.insforge.app/functions/tokentracker-leaderboard-refresh
+      API: https://tt.977744.xyz/functions/tokentracker-leaderboard-refresh
     steps:
       - name: Verify scan and reconcile leaderboard exclusions
         env:

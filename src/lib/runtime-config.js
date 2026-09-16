@@ -9,7 +9,16 @@ const DEFAULT_BASE_URL = "https://tt.977744.xyz";
 // migration stayed pinned to it and kept uploading there until the old
 // project's backend went dark on 2026-07-27 (HTTP 503 on every request).
 // Persisted values naming these hosts must fall back to the current default.
-const LEGACY_INSFORGE_HOSTS = new Set(["b46ug8xu.us-east.insforge.app"]);
+// FORK: upstream's CURRENT hosted project is here too. A config.json written by
+// the original app (or by an earlier build of this fork) still names it, and a
+// persisted value beats DEFAULT_BASE_URL — so an existing install kept uploading
+// to the original author's backend, and sign-in failed with "Invalid token"
+// because this build's anon key is not valid on their project. Treating it as
+// legacy routes those installs through the same one-time repair as b46ug8xu.
+const LEGACY_INSFORGE_HOSTS = new Set([
+  "b46ug8xu.us-east.insforge.app",
+  "srctyff5.us-east.insforge.app",
+]);
 const DEFAULT_DASHBOARD_URL = "https://tt.977744.xyz";
 const DEFAULT_HTTP_TIMEOUT_MS = 20_000;
 // Public anon key for the self-hosted InsForge. Mirrors

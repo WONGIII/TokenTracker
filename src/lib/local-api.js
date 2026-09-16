@@ -1807,7 +1807,13 @@ function createLocalApiHandler({ queuePath }) {
         }
         res.end(resBody);
       } catch (e) {
-        json(res, { error: `Auth proxy error: ${e?.message || e}` }, 502);
+        // undici reports every transport failure as a bare "fetch failed"; the
+        // real reason (ENOTFOUND / ECONNREFUSED / CERT_* / ECONNRESET) only lives
+        // on .cause. Surfacing it turns an unexplainable 502 into something the
+        // user can act on.
+        const cause = e?.cause?.code || e?.cause?.message || "";
+        const detail = cause ? `${e?.message || e} (${cause})` : e?.message || String(e);
+        json(res, { error: `Auth proxy error: ${detail}` }, 502);
       }
       return true;
     }

@@ -194,8 +194,8 @@ jobs:
       # `dashboard/.env.local` is gitignored so CI cannot read it — inject here.
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
+          VITE_INSFORGE_BASE_URL: https://tt.977744.xyz
+          VITE_INSFORGE_ANON_KEY: anon_8b315a83487de79bc4d17a5089d81d02b55184ab
         run: npm run dashboard:build
 
       # 2. Bundle EmbeddedServer (Node.js + tokentracker source)
@@ -444,8 +444,8 @@ jobs:
       # Vite inlines empty strings, breaking the leaderboard and cloud OAuth.
       - name: Build dashboard
         env:
-          VITE_INSFORGE_BASE_URL: https://srctyff5.us-east.insforge.app
-          VITE_INSFORGE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY
+          VITE_INSFORGE_BASE_URL: https://tt.977744.xyz
+          VITE_INSFORGE_ANON_KEY: anon_8b315a83487de79bc4d17a5089d81d02b55184ab
         run: npm run dashboard:build
 
       - name: Install Linux client dependencies
