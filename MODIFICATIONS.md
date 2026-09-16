@@ -1,7 +1,9 @@
 # Modifications
 
 This repository is a modified copy of [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker),
-distributed under the MIT License. The original `LICENSE` (Copyright (c) 2026 xiufengsun) is kept
+distributed under the MIT License. The original copyright notice is kept in `LICENSE`
+(Copyright (c) 2026 xiufengsun), with this fork's own line added below it — MIT requires
+the upstream notice to stay, so the file now carries both.
 verbatim; nothing here is endorsed by or contributed back to the upstream project.
 
 Changes relative to upstream, all on top of upstream commit `5be67a4f3d8ec34fc328e42c259fc347d2865443`:
