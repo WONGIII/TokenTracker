@@ -10,7 +10,7 @@ internal static class Diag
 {
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "TokenTracker", "windows-host.log");
+        Constants.AppDataFolderName, "windows-host.log");
 
     // Serializes the per-line writers (node stdout/stderr arrive on pipe-drain
     // pool threads) so the rotation below can't move the file mid-append.

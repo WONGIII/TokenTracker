@@ -251,7 +251,7 @@ internal sealed class PetWindow : Window
         // environments never clash over differing creation options.
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "TokenTracker", "WebView2Pet");
+            Constants.AppDataFolderName, "WebView2Pet");
         Directory.CreateDirectory(userDataFolder);
 
         // Transparent composition surface; must be set before the browser process starts.
@@ -901,7 +901,7 @@ internal sealed class PetWindow : Window
 
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "TokenTracker", "native-settings.json");
+        Constants.AppDataFolderName, "native-settings.json");
 
     /// <summary>
     /// The persisted pet visibility, or null when the user has never toggled it.

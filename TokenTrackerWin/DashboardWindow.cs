@@ -310,7 +310,7 @@ internal sealed class DashboardWindow : Window
         // (Program Files). Persist under LocalAppData so login/cookies survive restarts.
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "TokenTracker", "WebView2");
+            Constants.AppDataFolderName, "WebView2");
         Directory.CreateDirectory(userDataFolder);
 
         // Make the WebView2 composition surface itself transparent. Must be set before

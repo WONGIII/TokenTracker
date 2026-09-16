@@ -253,7 +253,7 @@ internal sealed class UpdateChecker
     {
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "TokenTracker", "updates");
+            Constants.AppDataFolderName, "updates");
         Directory.CreateDirectory(dir);
         var safeVersion = string.Concat(version.Select(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' ? c : '_'));
         var dest = Path.Combine(dir, $"TokenTracker-Setup-{safeVersion}.exe");

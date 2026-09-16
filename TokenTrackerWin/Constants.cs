@@ -17,8 +17,19 @@ internal static class Constants
     /// <summary>How long to wait for the server to answer after launch.</summary>
     public const int StartupTimeoutSeconds = 20;
 
-    public const string AppDisplayName = "TokenTracker";
+    public const string AppDisplayName = "TokenTracker ZzH";
     public const string GitHubUrl = "https://github.com/WONGIII/TokenTrackerZzH";
+
+    /// <summary>
+    /// The %LOCALAPPDATA% subfolder holding this app's own state: native
+    /// settings, theme, currency, update bookkeeping, the host log, and the
+    /// WebView2 caches for the dashboard and the pet window.
+    /// </summary>
+    // FORK: upstream uses "TokenTracker". Sharing that folder meant installing
+    // this build silently inherited the original app's settings, and the two
+    // builds then fought over the same WebView2 cache (which is also why a
+    // rebranded icon could keep showing the old one). One folder each.
+    public const string AppDataFolderName = "TokenTrackerZzH";
 
     /// <summary>HKCU Run-key value name used for launch-at-startup.</summary>
     // FORK: distinct from upstream's "TokenTracker" so this build's

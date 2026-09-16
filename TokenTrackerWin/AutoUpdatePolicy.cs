@@ -14,7 +14,7 @@ internal static class AutoUpdatePolicy
 
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "TokenTracker",
+        Constants.AppDataFolderName,
         "native-settings.json");
 
     public static bool IsEnabled() => ResolveEnabled(ReadSettings());
