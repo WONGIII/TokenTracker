@@ -38,7 +38,7 @@ Changes relative to upstream, all on top of upstream commit `5be67a4f3d8ec34fc32
    `NativeBridge.swift` / `StatusBarController.swift`, `dashboard/src/lib/config.ts`
    (`REPO_URL`, plus the `RELEASES_URL` / `MAC_DMG_URL` / `WIN_SETUP_URL` /
    `PRIVACY_URL` derived from it) and the `package.json` repository metadata all resolve
-   to `WONGIII/TokenTracker`. Upstream's README, docs, landing page
+   to `WONGIII/TokenTrackerZzH`. Upstream's README, docs, landing page
    (`dashboard/index.html`), Homebrew instructions and `LICENSE` are untouched, so
    attribution is preserved. This fork publishes no releases, so the updater now reports
    "up to date" instead of offering an upstream build.

@@ -28,7 +28,7 @@ internal sealed class UpdateChecker
     public enum UpdateState { Idle, Checking, UpdateAvailable, Downloading, Installing }
     public enum CheckOutcome { UpToDate, UpdateAvailable, Failed, Skipped }
 
-    private const string Repo = "WONGIII/TokenTracker";
+    private const string Repo = "WONGIII/TokenTrackerZzH";
 
     // The release uploads a stable, version-less "TokenTracker-Setup.exe"
     // (release-windows.yml renames the versioned Inno output before upload), and

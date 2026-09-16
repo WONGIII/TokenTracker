@@ -1,6 +1,6 @@
 import { getInsforgeRemoteUrl } from "./insforge-config";
 
-export const REPO_URL = "https://github.com/WONGIII/TokenTracker";
+export const REPO_URL = "https://github.com/WONGIII/TokenTrackerZzH";
 
 // FORK: upstream points this at tokentracker.statuspage.io (their hosted status
 // page). This deployment has no status page, so "service status" lands on our

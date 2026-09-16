@@ -5,7 +5,7 @@ import { copy } from "../../lib/copy";
 /**
  * Dashboard / marketing header: single row — icon + Star + count (matches Shell header).
  */
-export function HeaderGithubStar({ repo = "WONGIII/TokenTracker" }) {
+export function HeaderGithubStar({ repo = "WONGIII/TokenTrackerZzH" }) {
   const [stars, setStars] = useState(null);
 
   useEffect(() => {

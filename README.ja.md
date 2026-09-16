@@ -4,9 +4,9 @@
 
 # TokenTracker ZzH
 
-**これは [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker) の自分用カスタム版です** —— 同じトラッカーに、自前のクラウドバックエンド（`tt.977744.xyz`）、デフォルトペットの ZzH、OAuth なし、独自のディープリンク・ポート・アイコンを加えて、本家と共存できるようにしました。
+**これは [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker) の自分用カスタム版です** —— 同じトラッカーに、自前のサーバーへ切り替えたバックエンド、デフォルトペットの ZzH、OAuth なし、独自のディープリンク・ポート・アイコンを加えて、本家と共存できるようにしました。
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · **日本語** · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
+[English](./README.en.md) · [简体中文](./README.md) · **日本語** · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 
 ### すべての AI トークンを可視化し、コストを現実のものに
 
@@ -22,7 +22,7 @@
 
 | | 変更点 |
 |---|---|
-| ☁️ **自前のクラウド** | 同期・デバイス横断のアカウント表示・リーダーボードは、本家のホスト型プロジェクトではなく、Docker で自前運用している [InsForge](https://github.com/InsForge/InsForge)（`tt.977744.xyz`）を向きます。CLI の**既定バックエンド URL** も元作者のものだったので、自分のです。 |
+| ☁️ **自前のバックエンド** | 同期・デバイス横断のアカウント表示・リーダーボードは、本家のホスト型サービスではなく自分のサーバーを向きます。CLI の**既定バックエンド URL** も本家のものだったので変更しました。 |
 | 🔑 **OAuth を削除** | ログインはメール + パスワードのみ。サーバー側の OAuth プロバイダ枠はすべて空で、UI のプロバイダボタンも削除しました（押すと失敗するだけのボタンを残さない）。 |
 | 🐾 **ZzH** | ピンク文字に白背景の「Z」マークと新しい既定ペット（v2 スプライトアトラス）で、本家の黒い稲妻と Clawd を置き換えました。トレイ、タスクバー、favicon、ダッシュボードすべて。 |
 | 🔗 **スキームとポートの衝突回避** | ディープリンクは `ttzzh://`（本家は `tokentracker://`）、CLI ポートは **17890**（本家は 7680）、インストーラの識別子も別。本家サイトの「アプリで開く」を押しても本家が開き、こちらには来ません。 |
@@ -86,7 +86,7 @@
 **Node.js 20 以上**が必要です。
 
 ```bash
-git clone https://github.com/WONGIII/TokenTracker.git
+git clone https://github.com/WONGIII/TokenTrackerZzH.git
 cd TokenTracker
 node bin/tracker.js            # フックを導入し、同期し、ダッシュボードを開く
 ```
@@ -97,9 +97,9 @@ node bin/tracker.js            # フックを導入し、同期し、ダッシ�
 
 ---
 
-## クラウドは自前、そして任意
+## 同期は任意
 
-バックエンドは Docker で動かしている自前の InsForge（Postgres + 認証 + edge functions）です。サインインは**完全に任意**で、アカウントなしなら本家と同じく完全ローカルです。
+サインインは**完全に任意**で、アカウントなしなら本家と同じく完全ローカルです。
 
 **サインイン時に送信:** 時間単位の使用バケット（`hour_start`、`source`、`model`、5 つのトークン列、`total_tokens`、`conversation_count`）と、デバイス登録時のマシン ID。
 

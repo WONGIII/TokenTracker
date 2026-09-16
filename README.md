@@ -4,56 +4,56 @@
 
 # TokenTracker ZzH
 
-**This is my own custom-tuned build of [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** — the same tracker with my own changes on top: a self-hosted cloud backend (`tt.977744.xyz`), ZzH as the default desktop pet, no OAuth, and its own deep-link scheme, port and icon so it can sit next to the original without either build hijacking the other.
+**这是我自己特调版的 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** —— 同一个追踪器，加了我要的东西：后端换成我自己的服务器、默认桌宠换成 ZzH、去掉 OAuth，并且有独立的深链接协议、端口和图标，可以和原版装在同一台机器上互不干扰。
 
-**English** · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
+[English](./README.en.md) · **简体中文** · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md)
 
-### Track every AI token — then bring your usage to life
+### 跨所有 CLI，看清你到底在 AI 上花了多少钱
 
-An accurate, local-first token usage and cost dashboard for **39 AI coding tools** — plus a desktop pet, native widgets, and a self-hosted cloud you own end to end. Nothing is sent anywhere unless you sign in to *your own* server.
+自动采集 **39 款 AI 编码工具** 的 token 用量，全程本地聚合，用一套漂亮的 Dashboard 看真实成本与趋势。外加桌面宠物、原生小组件，云端同步走的是我自己的服务器。
 
 <img src="./docs/screenshots/zzh-dashboard.png" alt="Dashboard" width="880" />
 
 ---
 
-## What this fork changes
+## 这个特调版改了什么
 
-Upstream is a finished product; this is my personal build of it. Everything below is the delta.
+上游本身是个成品，这是我基于它做的个人版本。以下是全部差异。
 
-| | Change |
+| | 改动 |
 |---|---|
-| ☁️ **Own cloud** | Sync, the cross-device account view and the leaderboard point at my self-hosted [InsForge](https://github.com/InsForge/InsForge) at `tt.977744.xyz` instead of upstream's hosted project. The CLI's default backend URL was the original author's — it is now mine. |
-| 🔑 **No OAuth** | The login page is email + password only. All OAuth provider slots are empty on the server, and the provider buttons are gone from the UI rather than left in place to fail at click time. |
-| 🐾 **ZzH** | A pink-on-white "Z" mark and a new default desktop pet (a v2 sprite atlas) replace upstream's black bolt and Clawd mascot in the tray, the taskbar, the favicon and the dashboard. |
-| 🔗 **No scheme/port clash** | `ttzzh://` instead of `tokentracker://`, CLI port **17890** instead of 7680, and its own installer identity — so clicking "open in app" on upstream's website launches *their* app, never this one. |
-| 🧩 **Several accounts per adapter** | The Limits page can track more than one login per provider, each with its own key and plan. See below. |
-| 💰 **Pinned model prices** | DeepSeek V4.1 Flash (and its aliases) are priced at the V4 Flash rates instead of $0, including the time-of-use discount. |
-| 📉 **Two cost bugs fixed** | The detail modal used to bill every DeepSeek token at the peak rate (~1.7× the dashboard headline) because it priced model aggregates instead of rows. |
-| 🚫 **No third-party telemetry** | Upstream's PostHog key was hardcoded, so every release build reported pageviews to the original author's account. Analytics is off unless a build injects its own key. |
+| ☁️ **换成我的后端** | 数据同步、跨端账号视图、排行榜走我自己的服务器，不再是原项目的托管服务；CLI 的**默认后端地址**原本指向上游，现在也改了。 |
+| 🔑 **去掉 OAuth** | 登录页只保留邮箱 + 密码。服务端 7 个 OAuth 槽位全空，界面上的第三方登录按钮也直接删掉了（而不是留着点了报错）。 |
+| 🐾 **ZzH** | 粉字白底的「Z」标记 + 新的默认桌宠（v2 图集），替换掉上游的黑色闪电和 Clawd 形象——托盘、任务栏、favicon、Dashboard 全部换掉。 |
+| 🔗 **不再抢协议和端口** | 深链接协议改成 `ttzzh://`（原版是 `tokentracker://`），CLI 端口改成 **17890**（原版 7680），安装包也是独立标识——所以别人在原版官网点「在 app 内打开」，只会打开原版，不会跳到我们这里。 |
+| 🧩 **同一适配器多账号** | 限额页可以给同一个 provider 配多个登录，每个有自己的 key 和套餐。见下文。 |
+| 💰 **补齐模型价格** | DeepSeek V4.1 Flash 及其各种别名按 V4 Flash 的价格计费（原本是 $0），并且享受闲时半价。 |
+| 📉 **修掉两个成本 bug** | 详情弹窗原本按「模型聚合」计价，把每个 DeepSeek token 都按峰时价算，比外面显示的高约 1.7 倍。 |
+| 🚫 **没有第三方统计** | 上游把**他们自己的** PostHog key 写死在代码里，所有 release 的浏览数据都发到原作者账号。我把 key 置空，除非构建时注入自己的 key，否则完全不上报。 |
 
 ---
 
-## Screenshots
+## 截图
 
-| Limits — several accounts per adapter | Sessions |
+| 限额 —— 同一适配器多账号 | 会话 |
 |---|---|
-| <img src="./docs/screenshots/zzh-limits.png" alt="Limits" width="440" /> | <img src="./docs/screenshots/zzh-sessions.png" alt="Sessions" width="440" /> |
+| <img src="./docs/screenshots/zzh-limits.png" alt="限额" width="440" /> | <img src="./docs/screenshots/zzh-sessions.png" alt="会话" width="440" /> |
 
-| Skills | Achievements |
+| Skills | 成就 |
 |---|---|
-| <img src="./docs/screenshots/zzh-skills.png" alt="Skills" width="440" /> | <img src="./docs/screenshots/zzh-achievements.png" alt="Achievements" width="440" /> |
+| <img src="./docs/screenshots/zzh-skills.png" alt="Skills" width="440" /> | <img src="./docs/screenshots/zzh-achievements.png" alt="成就" width="440" /> |
 
-| Desktop pet | |
+| 桌面宠物 | |
 |---|---|
-| <img src="./docs/screenshots/zzh-pet.png" alt="Pet" width="440" /> | |
+| <img src="./docs/screenshots/zzh-pet.png" alt="宠物" width="440" /> | |
 
 ---
 
-## Several accounts per adapter
+## 同一适配器，多个账号
 
-TokenTracker tracked exactly one account per provider — whatever the local CLI happened to be logged into. That is not enough when you keep a work login and a personal one, or two API keys with different plans.
+原先每个 provider 只能跟踪**一个**账号——就是本地 CLI 当前登录的那个。如果你有工作号和个人号，或者两个不同套餐的 API key，这就不够用了。
 
-Add accounts to `~/.tokentracker/tracker/config.json`:
+在 `~/.tokentracker/tracker/config.json` 里加：
 
 ```json
 {
@@ -64,70 +64,70 @@ Add accounts to `~/.tokentracker/tracker/config.json`:
       { "id": "commandcode-go", "provider": "commandCode",
         "label": "CommandCode Go", "plan": "Go", "apiKey": "user_..." },
       { "id": "kimi-work", "provider": "kimi",
-        "label": "Kimi (work)", "plan": "Moonshot", "apiKey": "sk-..." },
+        "label": "Kimi 工作号", "plan": "Moonshot", "apiKey": "sk-..." },
       { "id": "codex-alt", "provider": "codex",
-        "label": "Codex (second account)", "home": "~/.codex-work" }
+        "label": "Codex 小号", "home": "~/.codex-work" }
     ]
   }
 }
 ```
 
-Each entry becomes its own card — its own label, its own plan badge, its own quota windows and reset times. Two credential modes, because the adapters do not all work the same way:
+每一条都会渲染成独立卡片：自己的名字、自己的套餐标签、自己的配额窗口和重置时间。凭据有两种模式，因为适配器的工作方式并不一样：
 
-- **`apiKey`** — the adapter's quota API accepts an explicit key. Supported for **kimi**, **opencodeGo** and **commandCode**; the key replaces the local CLI lookup entirely.
-- **`home`** — the adapter authenticates with a local CLI session, so a second account means a second profile directory. Log in there with the provider's own variable (`CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `GEMINI_HOME`, `KIMI_HOME`) and point the account at it.
+- **`apiKey`** —— 该适配器的额度 API 接受显式 key。目前支持 **kimi**、**opencodeGo**、**commandCode**；key 会完全取代本地 CLI 的凭据查找。
+- **`home`** —— 该适配器靠本地 CLI 的登录态取额度，所以「第二个账号」= 第二个配置目录。在那个目录里用该工具自己的环境变量登录（`CLAUDE_CONFIG_DIR`、`CODEX_HOME`、`GEMINI_HOME`、`KIMI_HOME`），再把账号指过去。
 
-An adapter that can address neither reports *"this adapter reads its quota from the local CLI login"* rather than silently showing the built-in account's numbers under a second label. ZCode is deliberately one of those: its endpoint and plan kind can only be derived from the local install.
+两种都做不到的适配器会明确显示「这个适配器的限额来自本地 CLI 登录态」，而不是悄悄把内置账号的数字换个标签再显示一遍。ZCode 就属于这一类：它的接口地址和套餐类型只能从本地安装里推出来。
 
 ---
 
-## Install and run
+## 安装与运行
 
-Requires **Node.js ≥ 20**.
+需要 **Node.js ≥ 20**。
 
 ```bash
-git clone https://github.com/WONGIII/TokenTracker.git
+git clone https://github.com/WONGIII/TokenTrackerZzH.git
 cd TokenTracker
-node bin/tracker.js            # installs hooks, syncs, opens the dashboard
+node bin/tracker.js            # 安装 hook、同步数据、打开 Dashboard
 ```
 
-The dashboard is served locally at **http://localhost:17890**. The Windows tray app is built from `TokenTrackerWin/` — see [`MODIFICATIONS.md`](./MODIFICATIONS.md) for the build steps; it installs side by side with upstream's app (`%LOCALAPPDATA%\Programs\TokenTrackerZzH`).
+Dashboard 跑在本地 **http://localhost:17890**。Windows 托盘版从 `TokenTrackerWin/` 构建，步骤见 [`MODIFICATIONS.md`](./MODIFICATIONS.md)；它会和原版**并存安装**（`%LOCALAPPDATA%\Programs\TokenTrackerZzH`）。
 
-> **Not on npm.** `npx tokentracker-cli` installs *upstream's* package, not this build. Use the repository (or a release asset) instead.
+> **没有发布到 npm。** `npx tokentracker-cli` 装的是**上游的包**，不是这个版本。请用仓库或 release 附件。
 
 ---
 
-## The cloud is mine, and optional
+## 同步是可选的
 
-The backend is a self-hosted InsForge instance (Postgres + auth + edge functions) running in Docker. Signing in is entirely optional — without an account everything is local-only, exactly like upstream.
+登录**完全可选**——不登录就是纯本地，和上游一致。
 
-**Sent when signed in:** hourly usage buckets — `hour_start`, `source`, `model`, the five token columns, `total_tokens`, `conversation_count` — plus a machine id at device-registration time.
+**登录后会发送：** 按小时的用量桶——`hour_start`、`source`、`model`、五个 token 列、`total_tokens`、`conversation_count`——以及注册设备时的机器标识。
 
-**Never sent:** prompts, responses, file contents, project or repository names, file paths, and any provider credential. Per-project and per-session files (`project.queue.jsonl`, `session.queue.jsonl`) are never uploaded.
+**永远不会发送：** 提示词、回复内容、文件内容、项目名/仓库名、文件路径、任何 provider 凭据。按项目和按会话的明细文件（`project.queue.jsonl`、`session.queue.jsonl`）从不上传。
 
-### Third-party services this build still talks to
+### 这个版本仍会访问的第三方服务
 
-Nothing here is upstream's infrastructure:
+下面没有一个属于上游的基础设施：
 
-| Service | When | What |
+| 服务 | 时机 | 内容 |
 |---|---|---|
-| The AI providers' own APIs (Anthropic, OpenAI, Cursor, Google, GitHub Copilot, xAI, Kimi, Z.ai, Qoder, Devin, CommandCode, iFlytek, TRAE) | While quota bars are visible | Reads *your* quota with credentials already on your machine. Direct from your machine to the provider; no middleman |
-| `raw.githubusercontent.com` | At most once a day | The public LiteLLM price table (one-way download) |
-| `api.github.com` | On dashboard load | Star count for this repository |
-| `codex-pets.net` | Only when you import a pet | The pet id you chose |
-| `open.er-api.com` | Only if you pick a non-USD currency | Nothing but the request |
-| `ip.net.coffee`, `claude.ai`, `1.1.1.1` | Only on the IP Check page | Your IP is the point of that page |
-| Provider status pages | Only on the Service Status page | Nothing but the request |
-| `fonts.googleapis.com` | Only when generating a share image | Standard web-font request |
+| 各家 AI 厂商自己的 API（Anthropic、OpenAI、Cursor、Google、GitHub Copilot、xAI、Kimi、Z.ai、Qoder、Devin、CommandCode、讯飞、TRAE） | 只有限额条可见时 | 用你机器上已有的凭据读**你自己的**额度。从你的机器直连厂商，不经过中间人 |
+| `raw.githubusercontent.com` | 每天最多一次 | 公开的 LiteLLM 价格表（单向下载） |
+| `api.github.com` | Dashboard 加载时 | 本仓库的 star 数 |
+| `codex-pets.net` | 只有你导入宠物时 | 你选择的宠物 id |
+| `open.er-api.com` | 只有你选非美元货币时 | 只有请求本身 |
+| `ip.net.coffee`、`claude.ai`、`1.1.1.1` | 只有打开 IP 检查页时 | 那个页面存在的意义就是看你的 IP |
+| 各家状态页 | 只有打开服务状态页时 | 只有请求本身 |
+| `fonts.googleapis.com` | 只有生成分享图时 | 标准字体请求 |
 
-There is **no analytics service**: the PostHog key is empty, and the anonymous install heartbeat now reports to my own server (disable it with `TOKENTRACKER_NO_TELEMETRY=1`).
+**没有任何分析服务**：PostHog 的 key 是空的；匿名安装心跳现在发给**我自己的**服务器（可以用 `TOKENTRACKER_NO_TELEMETRY=1` 关掉）。
 
 ---
 
-## Credits and licence
+## 致谢与许可
 
-MIT, same as upstream. The original `LICENSE` (Copyright (c) 2026 xiufengsun) is kept verbatim, and every change I made is listed in [`MODIFICATIONS.md`](./MODIFICATIONS.md) — this build is not endorsed by, or contributed back to, the upstream project.
+MIT，和上游一致。原始 `LICENSE`（Copyright (c) 2026 xiufengsun）原样保留，我做的所有改动都列在 [`MODIFICATIONS.md`](./MODIFICATIONS.md) —— 这个版本没有得到上游背书，也没有向上游回贡。
 
-- Upstream: **[xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** — the actual product, all 39 providers, the original dashboard
-- Backend: **[InsForge](https://github.com/InsForge/InsForge)** — the self-hosted BaaS this runs on
-- Model prices: **[LiteLLM](https://github.com/BerriAI/litellm)** — the upstream price table
+- 上游：**[xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** —— 真正的产品本体、39 家 provider、原始 Dashboard
+- 后端：**[InsForge](https://github.com/InsForge/InsForge)** —— 自托管 BaaS
+- 价格数据：**[LiteLLM](https://github.com/BerriAI/litellm)** —— 上游价格表

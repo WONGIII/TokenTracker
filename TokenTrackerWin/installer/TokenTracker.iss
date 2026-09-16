@@ -22,7 +22,7 @@
 
 #define MyAppName "TokenTracker ZzH"
 #define MyAppPublisher "TokenTracker"
-#define MyAppURL "https://github.com/WONGIII/TokenTracker"
+#define MyAppURL "https://github.com/WONGIII/TokenTrackerZzH"
 ; Folder name without spaces. Deliberately different from upstream's
 ; "TokenTracker" so this build installs side by side with an existing
 ; upstream install instead of replacing it.

@@ -2,11 +2,13 @@
 //   node bin/tracker.js serve --port 17890 --no-sync --no-open   # in another shell
 //   node scripts/capture-readme-shots.cjs
 //
-// Two things this has to get right, both learned the hard way:
+// Three things this has to get right, all learned the hard way:
 //   * the pet page is /pet-settings (NOT /pet — an unknown route silently falls
 //     back to the dashboard, so the "pet" shot was really the dashboard);
 //   * the Limits page is seeded to show ONLY the adapter that has accounts
-//     configured, otherwise a dozen "not connected" rows bury them.
+//     configured, otherwise a dozen "not connected" rows bury them;
+//   * the Limits shot also opens the accounts popover, because that is where the
+//     "several accounts per adapter" feature is actually edited.
 const { chromium } = require("playwright");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -58,6 +60,12 @@ const PROVIDER_IDS = [
       await page.waitForTimeout(1800);
       text = await page.evaluate(() => document.body.innerText || "");
       if (text.length > 700) break;
+    }
+    if (route === "/limits") {
+      // The accounts editor is the point of this page now, so it is part of the shot.
+      await page.click('button[aria-label="Accounts"]');
+      await page.waitForTimeout(1500);
+      text = await page.evaluate(() => document.body.innerText || "");
     }
     await page.waitForTimeout(1200);
     const file = path.join(OUT, name + ".png");

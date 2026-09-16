@@ -4,13 +4,13 @@
 
 # TokenTracker ZzH
 
-**Dies ist mein eigener, angepasster Build von [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** — derselbe Tracker mit meinen Anpassungen: eigenes Cloud-Backend (`tt.977744.xyz`), ZzH als Standard-Desktop-Pet, kein OAuth und eine eigene Deep-Link-, Port- und Icon-Identität, damit er neben dem Original laufen kann.
+**Dies ist mein eigener, angepasster Build von [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)** — derselbe Tracker mit meinen Anpassungen: Backend auf meinen eigenen Server umgestellt, ZzH als Standard-Desktop-Pet, kein OAuth und eine eigene Deep-Link-, Port- und Icon-Identität, damit er neben dem Original laufen kann.
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · **Deutsch**
+[English](./README.en.md) · [简体中文](./README.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · **Deutsch**
 
 ### Jeden AI-Token erfassen — und die Nutzung sichtbar machen
 
-Ein genaues, local-first Dashboard für Token-Verbrauch und Kosten über **39 AI-Coding-Tools** — plus Desktop-Pet, native Widgets und eine selbst gehostete Cloud, die vollständig mir gehört.
+Ein genaues, local-first Dashboard für Token-Verbrauch und Kosten über **39 AI-Coding-Tools** — plus Desktop-Pet, native Widgets und Cloud-Sync über meinen eigenen Server statt über den des Originalprojekts.
 
 <img src="./docs/screenshots/zzh-dashboard.png" alt="Dashboard" width="880" />
 
@@ -22,7 +22,7 @@ Das Original ist ein fertiges Produkt; dies ist mein persönlicher Build davon. 
 
 | | Änderung |
 |---|---|
-| ☁️ **Eigene Cloud** | Sync, geräteübergreifende Kontoansicht und Leaderboard zeigen auf meine selbst gehostete [InsForge](https://github.com/InsForge/InsForge)-Instanz (`tt.977744.xyz`) statt auf das gehostete Projekt des Originals. Auch die **Standard-Backend-URL** der CLI war die des ursprünglichen Autors — jetzt ist es meine. |
+| ☁️ **Eigenes Backend** | Sync, geräteübergreifende Kontoansicht und Leaderboard laufen über meinen eigenen Server statt über den gehosteten Dienst des Originalprojekts. Auch die **Standard-Backend-URL** der CLI zeigte auf das Original und wurde geändert. |
 | 🔑 **Kein OAuth** | Die Anmeldung ist nur E-Mail + Passwort. Alle OAuth-Provider-Slots sind serverseitig leer, und die Provider-Buttons wurden aus der UI entfernt, statt sie ins Leere laufen zu lassen. |
 | 🐾 **ZzH** | Eine pinke „Z"-Marke auf Weiß und ein neues Standard-Pet (v2-Sprite-Atlas) ersetzen den schwarzen Blitz und Clawd — in Tray, Taskleiste, Favicon und Dashboard. |
 | 🔗 **Kein Schema-/Port-Konflikt** | `ttzzh://` statt `tokentracker://`, CLI-Port **17890** statt 7680 und eine eigene Installer-Identität. Ein Klick auf „in App öffnen" auf der Original-Website startet also deren App, nie diese. |
@@ -86,7 +86,7 @@ Ein Adapter, der beides nicht kann, meldet „Dieser Adapter liest sein Kontinge
 Erfordert **Node.js ≥ 20**.
 
 ```bash
-git clone https://github.com/WONGIII/TokenTracker.git
+git clone https://github.com/WONGIII/TokenTrackerZzH.git
 cd TokenTracker
 node bin/tracker.js            # installiert Hooks, synchronisiert, öffnet das Dashboard
 ```
@@ -97,9 +97,9 @@ Das Dashboard läuft lokal unter **http://localhost:17890**. Die Windows-Tray-Ap
 
 ---
 
-## Die Cloud gehört mir — und ist optional
+## Sync ist optional
 
-Das Backend ist eine selbst gehostete InsForge-Instanz (Postgres + Auth + Edge Functions) in Docker. Die Anmeldung ist völlig optional: ohne Konto bleibt alles lokal, genau wie im Original.
+Die Anmeldung ist völlig optional: ohne Konto bleibt alles lokal, genau wie im Original.
 
 **Wird bei Anmeldung gesendet:** stündliche Nutzungs-Buckets (`hour_start`, `source`, `model`, die fünf Token-Spalten, `total_tokens`, `conversation_count`) sowie eine Maschinen-ID bei der Geräteregistrierung.
 

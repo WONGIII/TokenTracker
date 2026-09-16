@@ -4,9 +4,9 @@
 
 # TokenTracker ZzH
 
-**이것은 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)의 개인 커스텀 빌드입니다** —— 같은 트래커에 자체 클라우드 백엔드(`tt.977744.xyz`), 기본 펫 ZzH, OAuth 제거, 독자적인 딥링크·포트·아이콘을 적용해 원본과 나란히 설치할 수 있습니다.
+**이것은 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)의 개인 커스텀 빌드입니다** —— 같은 트래커에 자체 서버로 옮긴 백엔드, 기본 펫 ZzH, OAuth 제거, 독자적인 딥링크·포트·아이콘을 적용해 원본과 나란히 설치할 수 있습니다.
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · **한국어** · [Deutsch](./README.de.md)
+[English](./README.en.md) · [简体中文](./README.md) · [日本語](./README.ja.md) · **한국어** · [Deutsch](./README.de.md)
 
 ### 모든 AI 토큰을 추적하고, 사용량을 눈에 보이게
 
@@ -22,7 +22,7 @@
 
 | | 변경 |
 |---|---|
-| ☁️ **자체 클라우드** | 동기화·기기 간 계정 뷰·리더보드가 원본의 호스팅 프로젝트가 아니라 Docker로 직접 운영하는 [InsForge](https://github.com/InsForge/InsForge)(`tt.977744.xyz`)를 향합니다. CLI의 **기본 백엔드 URL**도 원작자의 것이었는데 이제 제 것입니다. |
+| ☁️ **자체 백엔드** | 동기화·기기 간 계정 뷰·리더보드가 원본의 호스팅 서비스가 아니라 제 서버를 향합니다. CLI의 **기본 백엔드 URL**도 원작자의 것이었는데 바꿨습니다. |
 | 🔑 **OAuth 제거** | 로그인은 이메일 + 비밀번호만. 서버의 OAuth 프로바이더 슬롯은 모두 비어 있고, UI의 프로바이더 버튼도 삭제했습니다(눌러도 실패하는 버튼을 남기지 않음). |
 | 🐾 **ZzH** | 분홍 글자에 흰 배경인 "Z" 마크와 새 기본 펫(v2 스프라이트 아틀라스)으로 원본의 검은 번개와 Clawd를 교체했습니다. 트레이, 작업 표시줄, favicon, 대시보드 전부. |
 | 🔗 **스킴·포트 충돌 제거** | 딥링크는 `ttzzh://`(원본은 `tokentracker://`), CLI 포트는 **17890**(원본 7680), 설치 프로그램 식별자도 별도. 원본 사이트에서 "앱에서 열기"를 눌러도 원본이 열릴 뿐 이 앱으로 오지 않습니다. |
@@ -86,7 +86,7 @@
 **Node.js 20 이상** 필요.
 
 ```bash
-git clone https://github.com/WONGIII/TokenTracker.git
+git clone https://github.com/WONGIII/TokenTrackerZzH.git
 cd TokenTracker
 node bin/tracker.js            # 훅 설치, 동기화, 대시보드 열기
 ```
@@ -97,9 +97,9 @@ node bin/tracker.js            # 훅 설치, 동기화, 대시보드 열기
 
 ---
 
-## 클라우드는 내 것이고, 선택 사항
+## 동기화는 선택 사항
 
-백엔드는 Docker로 돌리는 자체 InsForge(Postgres + 인증 + edge functions)입니다. 로그인은 **완전히 선택**이며, 계정이 없으면 원본과 똑같이 전부 로컬입니다.
+로그인은 **완전히 선택**이며, 계정이 없으면 원본과 똑같이 전부 로컬입니다.
 
 **로그인 시 전송:** 시간 단위 사용 버킷(`hour_start`, `source`, `model`, 5개 토큰 열, `total_tokens`, `conversation_count`)과 기기 등록 시의 머신 ID.
 

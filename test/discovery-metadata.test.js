@@ -19,37 +19,17 @@ const SUPPORTED_PROVIDERS = (() => {
 })();
 const TOOL_COUNT = SUPPORTED_PROVIDERS.length;
 
+// FORK: every README was rewritten (see MODIFICATIONS.md) — they are fork notes
+// now, not upstream's marketing inventory, so the comparison tables, provider
+// roll-call and env-var docs these assertions used to require are gone by design.
+// What still has to stay in lockstep is the provider COUNT each edition quotes
+// and the fact that all five editions exist and link to one another.
 const README_EXPECTATIONS = [
-  [
-    "README.md",
-    () => new RegExp(`${TOOL_COUNT} AI coding tools`),
-    () => new RegExp(`\\|\\s+\\*\\*AI tools supported\\*\\*\\s+\\|\\s+\\*\\*${TOOL_COUNT}\\*\\*`),
-    /Rate-limit tracking.*✅ 17 providers/,
-  ],
-  [
-    "README.zh-CN.md",
-    () => new RegExp(`${TOOL_COUNT} 款 AI 编码工具`),
-    () => new RegExp(`\\|\\s+\\*\\*支持的 AI 工具数\\*\\*\\s+\\|\\s+\\*\\*${TOOL_COUNT}\\*\\*`),
-    /限额追踪.*✅ 17 家 provider/,
-  ],
-  [
-    "README.ja.md",
-    () => new RegExp(`${TOOL_COUNT} 種類の AI コーディングツール`),
-    () => new RegExp(`\\|\\s+\\*\\*対応 AI ツール数\\*\\*\\s+\\|\\s+\\*\\*${TOOL_COUNT}\\*\\*`),
-    /レート制限トラッキング.*✅ 17 プロバイダー/,
-  ],
-  [
-    "README.ko.md",
-    () => new RegExp(`${TOOL_COUNT}개의 AI 코딩 도구`),
-    () => new RegExp(`\\|\\s+\\*\\*지원하는 AI 도구 수\\*\\*\\s+\\|\\s+\\*\\*${TOOL_COUNT}\\*\\*`),
-    /레이트 제한 추적.*✅ 17개 프로바이더/,
-  ],
-  [
-    "README.de.md",
-    () => new RegExp(`${TOOL_COUNT} KI-Coding-Tools`),
-    () => new RegExp(`\\|\\s+\\*\\*Unterstützte KI-Tools\\*\\*\\s+\\|\\s+\\*\\*${TOOL_COUNT}\\*\\*`),
-    /Rate-Limit-Tracking.*✅ 17 Provider/,
-  ],
+  ["README.md", new RegExp(`${TOOL_COUNT} 款 AI 编码工具`)],
+  ["README.en.md", new RegExp(`${TOOL_COUNT} AI coding tools`)],
+  ["README.ja.md", new RegExp(`${TOOL_COUNT} 種類の AI コーディングツール`)],
+  ["README.ko.md", new RegExp(`${TOOL_COUNT}종의 AI 코딩 도구`)],
+  ["README.de.md", new RegExp(`${TOOL_COUNT} AI-Coding-Tools`)],
 ];
 
 test("public discovery surfaces describe every supported tool", () => {
@@ -57,23 +37,15 @@ test("public discovery surfaces describe every supported tool", () => {
   // quota-only badge — so every public inventory must carry it explicitly.
   assert.ok(SUPPORTED_PROVIDERS.includes("Devin CLI"), "init advertises Devin CLI");
 
-  for (const [file, countPattern, comparisonPattern, limitCountPattern] of README_EXPECTATIONS) {
+  for (const [file, countPattern] of README_EXPECTATIONS) {
     const source = read(file);
-    assert.match(source, countPattern(), `${file} has the current provider count`);
-    assert.match(source, comparisonPattern(), `${file} comparison table has the current provider count`);
-    assert.match(source, /Droid/, `${file} lists Droid`);
-    assert.match(source, /AnythingLLM Desktop/, `${file} lists AnythingLLM Desktop`);
-    assert.match(source, /Qoder/, `${file} lists Qoder`);
-    assert.match(source, /DeepSeek Harness/, `${file} lists DeepSeek Harness`);
-    assert.match(source, /Prime Agent/, `${file} lists Prime Agent`);
-    assert.match(source, /TRAE Work CN/, `${file} lists TRAE Work CN`);
-    assert.match(source, /AStudio/, `${file} lists AStudio`);
-    assert.doesNotMatch(source, /\bAcode\b/, `${file} does not expose the former product name`);
-    assert.match(source, /TOKENTRACKER_ACODE_HOME/, `${file} documents the AStudio directory override`);
-    assert.match(source, /LM Studio/, `${file} lists LM Studio`);
-    assert.match(source, /Unsloth Studio/, `${file} lists Unsloth Studio`);
-    assert.match(source, /Devin CLI/, `${file} lists Devin CLI`);
-    assert.match(source, limitCountPattern, `${file} rate-limit row carries the current usage-limits provider count`);
+    assert.match(source, countPattern, `${file} carries the current provider count`);
+    assert.match(source, /xiufengsun\/TokenTracker/, `${file} credits upstream`);
+    for (const [other] of README_EXPECTATIONS) {
+      if (other === file) continue;
+      const link = new RegExp(`\\(\\./${other.replace(/\./g, "\\.")}\\)`);
+      assert.match(source, link, `${file} links ${other}`);
+    }
   }
 
   const index = read("dashboard/index.html");
@@ -100,10 +72,9 @@ test("public discovery surfaces describe every supported tool", () => {
   assert.match(llms, /four desktop widgets/i);
   assert.match(llms, /achievements/i);
 
-  const englishReadme = read("README.md");
-  assert.match(englishReadme, /TOKENTRACKER_LMSTUDIO_HOME/);
-  assert.match(englishReadme, /TOKENTRACKER_UNSLOTH_DB/);
-  assert.match(englishReadme, /TOKENTRACKER_DEVIN_DB/);
+  // FORK: the READMEs no longer document the per-provider directory overrides.
+  // Those env vars are still supported and documented in MODIFICATIONS.md and in
+  // the CLI's own --help; the READMEs are fork notes now, not a provider manual.
 });
 
 test("marketing logo wall includes the same supported product integrations", () => {

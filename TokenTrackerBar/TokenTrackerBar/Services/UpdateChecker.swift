@@ -6,8 +6,8 @@ final class UpdateChecker {
 
     static let shared = UpdateChecker()
 
-    private let repo = "WONGIII/TokenTracker"
-    private let releaseURL: String = "https://github.com/WONGIII/TokenTracker/releases/latest"
+    private let repo = "WONGIII/TokenTrackerZzH"
+    private let releaseURL: String = "https://github.com/WONGIII/TokenTrackerZzH/releases/latest"
 
     /// Observable status for menu item display
     private(set) var statusText: String? = nil {
