@@ -14,7 +14,17 @@ export const LEADERBOARD_TOKEN_COLUMNS = [
   { key: "kimi_tokens", copyKey: "leaderboard.column.kimi", icon: "/brand-logos/kimi.svg" },
   // FishLogo from ProviderIcon, extracted to a file because this header renders an
   // <img> rather than the inline component.
-  { key: "deepseek_harness_tokens", copyKey: "provider.display.deepseek_harness", icon: "/brand-logos/deepseek-harness.svg" },
+  //
+  // `provider` is explicit because the mobile row renders <ProviderIcon>, which
+  // resolves its icon by name. The fallback derives that name from the icon file
+  // ("deepseek-harness.svg" -> "DEEPSEEK-HARNESS") and the icon map only knows
+  // DEEPSEEK and DSH, so the mobile badge came out with no icon at all.
+  {
+    key: "deepseek_harness_tokens",
+    copyKey: "provider.display.deepseek_harness",
+    icon: "/brand-logos/deepseek-harness.svg",
+    provider: "dsh",
+  },
   { key: "opencode_tokens", copyKey: "leaderboard.column.opencode", icon: "/brand-logos/opencode.svg" },
   { key: "openclaw_tokens", copyKey: "leaderboard.column.openclaw", icon: "/brand-logos/openclaw.svg" },
   { key: "hermes_tokens", copyKey: "leaderboard.column.hermes", icon: "/brand-logos/hermes.svg" },

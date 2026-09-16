@@ -190,6 +190,10 @@ function LeaderboardTokenCells({ entry, isMe, orderedColumns }) {
 }
 
 function providerNameFromColumn(column) {
+  // An explicit provider always wins: deriving the name from the icon filename only
+  // works while the two happen to agree (it turned "deepseek-harness.svg" into
+  // "DEEPSEEK-HARNESS", which the icon map does not know).
+  if (column?.provider) return String(column.provider).toUpperCase();
   if (column?.key === "gpt_tokens") return "CODEX";
   if (column?.key === "claude_tokens") return "CLAUDE";
   const fileName = column?.icon?.split("/").pop() || "";
