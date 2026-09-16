@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Constants.cs is linked because AutoUpdatePolicy/Diag read
+         Constants.AppDataFolderName; without it the test project fails to
+         compile with CS0103 while the app project builds fine. -->
+    <Compile Include="../TokenTrackerWin/Constants.cs" Link="Constants.cs" />
     <Compile Include="../TokenTrackerWin/ChildProcessProxy.cs" Link="ChildProcessProxy.cs" />
     <Compile Include="../TokenTrackerWin/LocalSyncPublisher.cs" Link="LocalSyncPublisher.cs" />
     <Compile Include="../TokenTrackerWin/ResumableDownloader.cs" Link="ResumableDownloader.cs" />

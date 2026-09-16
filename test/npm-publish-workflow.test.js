@@ -4,7 +4,18 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { assertReleaseVersion } = require("../scripts/version-files.cjs");
 
+// FORK: this build is not published to npm (the READMEs say so), so the workflow
+// that published upstream's package is parked in workflows-disabled/. The content
+// assertions below still run against that file, so re-enabling it means keeping
+// them passing rather than deleting them.
 const WORKFLOW_PATH = path.join(
+  __dirname,
+  "..",
+  ".github",
+  "workflows-disabled",
+  "npm-publish.yml"
+);
+const ACTIVE_WORKFLOW_PATH = path.join(
   __dirname,
   "..",
   ".github",
@@ -17,8 +28,12 @@ function loadWorkflow() {
   return fs.readFileSync(WORKFLOW_PATH, "utf8");
 }
 
-test("npm-publish workflow file exists", () => {
-  assert.ok(fs.existsSync(WORKFLOW_PATH), "workflow file should exist");
+test("npm-publish workflow is parked, not active", () => {
+  assert.ok(fs.existsSync(WORKFLOW_PATH), "the parked workflow should exist");
+  assert.ok(
+    !fs.existsSync(ACTIVE_WORKFLOW_PATH),
+    "a fork that does not publish to npm must not run the publish workflow",
+  );
 });
 
 test("workflow triggers only after canonical CI completes on main", () => {

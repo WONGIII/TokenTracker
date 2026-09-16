@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-Sitemap: https://www.tokentracker.cc/sitemap.xml
+Sitemap: https://tt.977744.xyz/sitemap.xml
 
 # AI/agent discovery helpers
-# llms: https://www.tokentracker.cc/llms.txt
-# feed: https://www.tokentracker.cc/feed.xml
+# llms: https://tt.977744.xyz/llms.txt
+# feed: https://tt.977744.xyz/feed.xml

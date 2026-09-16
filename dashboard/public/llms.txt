@@ -8,13 +8,13 @@ Windows system tray app, and a dashboard. It records token counts and
 timestamps, never prompts, responses, or source code.
 
 ## Canonical URL
-- [Homepage](https://www.tokentracker.cc/)
+- [Homepage](https://tt.977744.xyz/)
 
 ## Priority URLs
-- [Homepage](https://www.tokentracker.cc/)
+- [Homepage](https://tt.977744.xyz/)
 - [GitHub repository](https://github.com/xiufengsun/TokenTracker)
-- [Leaderboard](https://www.tokentracker.cc/leaderboard)
-- [Claude IP check](https://www.tokentracker.cc/ip-check)
+- [Leaderboard](https://tt.977744.xyz/leaderboard)
+- [Claude IP check](https://tt.977744.xyz/ip-check)
 
 ## Product
 - Install command: `npx tokentracker-cli`
@@ -79,10 +79,10 @@ http://localhost:7680 on the user's own machine. It includes usage, cost,
 limits, projects, heatmap, skills, achievements, widgets, and settings.
 
 ## Policy and discovery
-- [llms.txt](https://www.tokentracker.cc/llms.txt)
-- [sitemap.xml](https://www.tokentracker.cc/sitemap.xml)
-- [feed.xml](https://www.tokentracker.cc/feed.xml)
-- [robots.txt](https://www.tokentracker.cc/robots.txt)
+- [llms.txt](https://tt.977744.xyz/llms.txt)
+- [sitemap.xml](https://tt.977744.xyz/sitemap.xml)
+- [feed.xml](https://tt.977744.xyz/feed.xml)
+- [robots.txt](https://tt.977744.xyz/robots.txt)
 - Local-first by default; cloud sync is optional.
 - Token counts only; prompts and conversation content are never collected.
 

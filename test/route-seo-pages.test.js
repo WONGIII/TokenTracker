@@ -15,9 +15,11 @@ function read(relativePath) {
 // (self-referential canonical + route-specific copy) Google collapses these
 // routes into the homepage and drops them from the index — which is exactly the
 // organic traffic these tests protect.
+// FORK: canonicals point at this deployment, matching the domain rewrite in
+// dashboard/vite.config.js.
 const ROUTE_PAGES = [
-  { route: "/ip-check", file: "/ip-check.html", canonical: "https://www.tokentracker.cc/ip-check" },
-  { route: "/leaderboard", file: "/leaderboard.html", canonical: "https://www.tokentracker.cc/leaderboard" },
+  { route: "/ip-check", file: "/ip-check.html", canonical: "https://tt.977744.xyz/ip-check" },
+  { route: "/leaderboard", file: "/leaderboard.html", canonical: "https://tt.977744.xyz/leaderboard" },
 ];
 
 test("vercel.json rewrites map route SEO pages before the SPA catch-all", () => {

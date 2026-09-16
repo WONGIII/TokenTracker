@@ -41,7 +41,8 @@ test("star CTA is shown once after an interactive CLI launch", async () => {
     });
     assert.deepEqual(firstResult, { shown: true, reason: "shown" });
     assert.match(first.output(), /GitHub Star/);
-    assert.match(first.output(), /github\.com\/xiufengsun\/TokenTracker/);
+    // FORK: the CTA points at this fork's repository.
+    assert.match(first.output(), /github\.com\/WONGIII\/TokenTrackerZzH/);
 
     const state = JSON.parse(
       await fs.readFile(path.join(trackerDir, STAR_CTA_STATE_FILE), "utf8"),

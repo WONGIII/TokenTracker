@@ -349,7 +349,10 @@ test("leaderboard refresh reconciles stale rows after the replacement snapshot i
 });
 
 test("leaderboard anti-cheat workflow verifies database-native scans, reconciles exclusions, and never leaks identities", () => {
-  const workflow = read(".github/workflows/leaderboard-anticheat.yml");
+  // FORK: upstream's hourly moderation crons need a shared secret this deployment
+  // does not set, so they are parked in workflows-disabled/. The guardrail still
+  // validates the file's contents.
+  const workflow = read(".github/workflows-disabled/leaderboard-anticheat.yml");
   assert.match(
     workflow,
     /cron: "53 \* \* \* \*"/u,
@@ -421,7 +424,7 @@ test("database-native anti-cheat detector has a bounded hourly scan budget", () 
 });
 
 test("anti-cheat responder atomically reconciles snapshots only when the moderation queue changed", () => {
-  const workflow = read(".github/workflows/leaderboard-anticheat.yml");
+  const workflow = read(".github/workflows-disabled/leaderboard-anticheat.yml");
   const source = read("dashboard/edge-patches/tokentracker-leaderboard-refresh.ts");
   const migration = readMigrationBySuffix("reconcile-anticheat-snapshot-exclusions");
 
