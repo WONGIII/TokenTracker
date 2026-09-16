@@ -2380,20 +2380,25 @@ function createLocalApiHandler({ queuePath }) {
         ma.totals.cached_input_tokens += row.cached_input_tokens || 0;
         ma.totals.cache_creation_input_tokens += row.cache_creation_input_tokens || 0;
         ma.totals.reasoning_output_tokens += row.reasoning_output_tokens || 0;
-        ma.totals.total_cost_usd = Number(ma.totals.total_cost_usd || 0)
-          + (Number(row.total_cost_usd) || 0);
+        // Price each row HERE, while hour_start is still attached. Pricing the
+        // (source, model) aggregate further down loses hour_start;
+        // isDeepSeekOffPeak() then sees no timestamp at all and returns false,
+        // so every DeepSeek token was billed at the peak rate and this endpoint
+        // read ~1.7x the dashboard headline for the same range. Mirrors
+        // aggregateByDay() above and the cloud account-model-breakdown edge,
+        // which both price per row.
+        ma.totals.total_cost_usd = Number(ma.totals.total_cost_usd || 0) + computeRowCost(row);
       }
 
       const sources = Array.from(bySource.values()).map((s) => {
         s.models = Array.from(s.models.values())
-          .map((m) => {
-            const cost = computeRowCost({
+          .map((m) => ({
+            ...m,
+            totals: {
               ...m.totals,
-              model: m.model,
-              source: s.source,
-            });
-            return { ...m, totals: { ...m.totals, total_cost_usd: cost.toFixed(6) } };
-          })
+              total_cost_usd: Number(m.totals.total_cost_usd || 0).toFixed(6),
+            },
+          }))
           .sort((a, b) => b.totals.total_tokens - a.totals.total_tokens);
         const sourceCost = s.models.reduce((sum, m) => sum + Number(m.totals.total_cost_usd), 0);
         s.totals.total_cost_usd = sourceCost.toFixed(6);

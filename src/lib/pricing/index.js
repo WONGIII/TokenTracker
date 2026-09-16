@@ -31,7 +31,16 @@ const LOCAL_INFERENCE_SOURCES = new Set(["lmstudio"]);
 const OPENAI_LONG_CONTEXT_INPUT_THRESHOLD = 272_000;
 const SOURCES_WITH_AUTHORITATIVE_COST = new Set(["grok"]);
 const SEED_SNAPSHOT_PATH = path.resolve(__dirname, "seed-snapshot.json");
+// Matched with String.includes(), so an entry covers every id that CONTAINS it
+// (that is how "deepseek-v4-flash" also covers deepseek-v4-flash-vision-exp and
+// the date-stamped deepseek-v4.1-flash-expires-on-* aliases).
+// The dotted V4.1 id and the short "deepseek-flash" alias need their own entries
+// because neither contains the other: "deepseek-v4.1-flash" does not contain
+// "deepseek-v4-flash", and neither contains "deepseek-flash". Without them those
+// rows keep paying the peak rate around the clock.
 const DEEPSEEK_TIME_PRICED_MODELS = [
+  "deepseek-v4.1-flash",
+  "deepseek-flash",
   "deepseek-v4-flash",
   "deepseek-v4-pro",
 ];

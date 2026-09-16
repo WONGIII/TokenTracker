@@ -159,6 +159,41 @@
       "cache_read": 0.014,
       "cache_write": 0.44
     },
+    "deepseek-v4.1-flash": {
+      "input": 0.44,
+      "output": 1.32,
+      "cache_read": 0.014,
+      "cache_write": 0.44,
+      "note": "DeepSeek V4.1 Flash. Pinned to the deepseek-v4-flash peak rates ($0.44/$1.32 per MTok, cache_read 0.1x, cache_write = input). The dotted id and the provider-path-prefixed ids below are what DSH and relay/gateway clients emit; LiteLLM does not carry them, so without these entries the rows priced at $0."
+    },
+    "deepseek-v4.1-flash-expires-on-0910": {
+      "input": 0.44,
+      "output": 1.32,
+      "cache_read": 0.014,
+      "cache_write": 0.44,
+      "note": "Date-stamped alias DSH logs for the deepseek-v4.1-flash promo (used 2026-09-08..09, never after). Same peak rates as deepseek-v4-flash. Also covered by the fuzzy rule below, so a future date suffix keeps pricing without another entry."
+    },
+    "deepseek-flash": {
+      "input": 0.44,
+      "output": 1.32,
+      "cache_read": 0.014,
+      "cache_write": 0.44,
+      "note": "Short alias for deepseek-v4-flash emitted by some clients. Same peak rates as deepseek-v4-flash / deepseek-v4.1-flash."
+    },
+    "deepseek/deepseek-v4.1-flash": {
+      "input": 0.44,
+      "output": 1.32,
+      "cache_read": 0.014,
+      "cache_write": 0.44,
+      "note": "Provider-path-prefixed deepseek-v4.1-flash. Exact key so the price does not depend on LiteLLM's prefix-strip step or on which provider key sorts first."
+    },
+    "cmc/deepseek/deepseek-v4.1-flash": {
+      "input": 0.44,
+      "output": 1.32,
+      "cache_read": 0.014,
+      "cache_write": 0.44,
+      "note": "cmc relay path for deepseek-v4.1-flash. Same peak rates as deepseek-v4-flash."
+    },
     "deepseek-chat": {
       "input": 0.14,
       "output": 0.28,
@@ -543,6 +578,10 @@
     {
       "match": "minimax-m2.7",
       "ref": "MiniMax-M2.7"
+    },
+    {
+      "match": "deepseek-v4.1-flash-expires-on",
+      "ref": "deepseek-v4-flash"
     },
     {
       "match": "deepseek-v4-flash",
