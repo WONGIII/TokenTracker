@@ -230,7 +230,7 @@ function richLinkMetaPlugin() {
 const ROUTE_SEO_PAGES = [
   {
     file: "ip-check.html",
-    url: "https://www.tokentracker.cc/ip-check",
+    url: "https://tt.977744.xyz/ip-check",
     title: "Claude IP Check — Exit IP Reputation, Geo & Risk Score",
     description:
       "Free Claude IP check: see the exit IP used to reach Claude Code plus reputation, geo and cleanliness/risk (纯净度/风险) signals that can trigger sign-in blocks or rate limits.",
@@ -239,24 +239,24 @@ const ROUTE_SEO_PAGES = [
       "@graph": [
         {
           "@type": "Organization",
-          "@id": "https://www.tokentracker.cc/#organization",
+          "@id": "https://tt.977744.xyz/#organization",
           name: "Token Tracker",
-          url: "https://www.tokentracker.cc/",
+          url: "https://tt.977744.xyz/",
         },
         {
           "@type": "WebPage",
-          "@id": "https://www.tokentracker.cc/ip-check#webpage",
-          url: "https://www.tokentracker.cc/ip-check",
+          "@id": "https://tt.977744.xyz/ip-check#webpage",
+          url: "https://tt.977744.xyz/ip-check",
           name: "Claude IP Check — Exit IP Reputation, Geo & Risk Score",
-          isPartOf: { "@id": "https://www.tokentracker.cc/#website" },
+          isPartOf: { "@id": "https://tt.977744.xyz/#website" },
           description:
             "Check the exit IP used to reach Claude Code, with reputation, geolocation and cleanliness/risk (纯净度/风险) signals.",
         },
         {
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.tokentracker.cc/" },
-            { "@type": "ListItem", position: 2, name: "Claude IP Check", item: "https://www.tokentracker.cc/ip-check" },
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://tt.977744.xyz/" },
+            { "@type": "ListItem", position: 2, name: "Claude IP Check", item: "https://tt.977744.xyz/ip-check" },
           ],
         },
         {
@@ -320,7 +320,7 @@ const ROUTE_SEO_PAGES = [
   },
   {
     file: "leaderboard.html",
-    url: "https://www.tokentracker.cc/leaderboard",
+    url: "https://tt.977744.xyz/leaderboard",
     title: "AI Coding Token Usage Leaderboard — Claude, Codex, Cursor",
     description:
       "Public Token Tracker leaderboard ranking AI coding token usage across Claude Code, Codex, Cursor, Gemini and 27 tools. Opt-in, privacy-first — token counts only, never prompts.",
@@ -329,24 +329,24 @@ const ROUTE_SEO_PAGES = [
       "@graph": [
         {
           "@type": "Organization",
-          "@id": "https://www.tokentracker.cc/#organization",
+          "@id": "https://tt.977744.xyz/#organization",
           name: "Token Tracker",
-          url: "https://www.tokentracker.cc/",
+          url: "https://tt.977744.xyz/",
         },
         {
           "@type": "WebPage",
-          "@id": "https://www.tokentracker.cc/leaderboard#webpage",
-          url: "https://www.tokentracker.cc/leaderboard",
+          "@id": "https://tt.977744.xyz/leaderboard#webpage",
+          url: "https://tt.977744.xyz/leaderboard",
           name: "AI Coding Token Usage Leaderboard",
-          isPartOf: { "@id": "https://www.tokentracker.cc/#website" },
+          isPartOf: { "@id": "https://tt.977744.xyz/#website" },
           description:
             "Public leaderboard ranking opt-in AI coding token usage across Claude Code, Codex, Cursor, Gemini and 27 tools.",
         },
         {
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.tokentracker.cc/" },
-            { "@type": "ListItem", position: 2, name: "Leaderboard", item: "https://www.tokentracker.cc/leaderboard" },
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://tt.977744.xyz/" },
+            { "@type": "ListItem", position: 2, name: "Leaderboard", item: "https://tt.977744.xyz/leaderboard" },
           ],
         },
       ],

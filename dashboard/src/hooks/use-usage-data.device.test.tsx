@@ -25,7 +25,7 @@ describe("useUsageData device scope", () => {
   it("forwards deviceId to the cloud daily fetcher", async () => {
     renderHook(() =>
       useUsageData({
-        baseUrl: "https://app.tokentracker.cc",
+        baseUrl: "https://tt.977744.xyz",
         from: "2026-06-01",
         to: "2026-06-30",
         includeDaily: true,
@@ -43,7 +43,7 @@ describe("useUsageData device scope", () => {
   it("skips the cloud summary request for a daily-only consumer", async () => {
     renderHook(() =>
       useUsageData({
-        baseUrl: "https://app.tokentracker.cc",
+        baseUrl: "https://tt.977744.xyz",
         from: "2026-06-01",
         to: "2026-06-30",
         includeDaily: true,
@@ -62,7 +62,7 @@ describe("useUsageData device scope", () => {
   it("writes a device-scoped cache key (no collision with all-devices)", async () => {
     renderHook(() =>
       useUsageData({
-        baseUrl: "https://app.tokentracker.cc",
+        baseUrl: "https://tt.977744.xyz",
         from: "2026-06-01", to: "2026-06-30", includeDaily: false,
         cacheKey: "u1", timeZone: "UTC",
         accountView: true, accountAccessToken: "jwt-token", deviceId: "dev-7",
@@ -86,7 +86,7 @@ describe("useUsageData device scope", () => {
     const { result, rerender } = renderHook(
       ({ from, to }) =>
         useUsageData({
-          baseUrl: "https://app.tokentracker.cc",
+          baseUrl: "https://tt.977744.xyz",
           from,
           to,
           includeDaily: false,

@@ -21,9 +21,11 @@ import { isNativeEmbed, isNativeWindowsApp } from "./native-bridge.js";
 // and cannot read any data. Hardcoded rather than injected via VITE_ env so
 // release builds (Vercel, DMG / Windows embedded dashboard, npm package)
 // can't silently lose analytics to a missing CI env var.
-const POSTHOG_KEY =
-  import.meta.env.VITE_POSTHOG_KEY || "phc_nXhUfFbyrW9gNvp8iBL83eWPUhAuAYJgcgqUJxwUbBgj";
-const POSTHOG_HOST = "https://us.i.posthog.com";
+// FORK: upstream hardcoded THEIR PostHog project key here, which sent every
+// release build's pageviews to their account. There is no key for this fork, so
+// analytics is off unless a build injects VITE_POSTHOG_KEY (and POSTHOG_HOST).
+const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "";
+const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
 
 export function resolveAnalyticsShell() {
   if (typeof window === "undefined") return "web";
@@ -54,6 +56,8 @@ export function initAnalytics() {
   if (typeof window === "undefined") return;
   // Vite dev server (5173 mock mode) and vitest must never emit events.
   if (import.meta.env.DEV || import.meta.env.MODE === "test") return;
+  // No key configured for this fork → never phone home, on any surface.
+  if (!POSTHOG_KEY) return;
 
   try {
     const shell = resolveAnalyticsShell();

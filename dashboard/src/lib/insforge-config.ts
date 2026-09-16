@@ -12,9 +12,14 @@ import { createClient } from "@insforge/sdk";
  * (Previously this mistakenly hardcoded the full-access `ik_*` API key, which
  * has admin access and must never reach the frontend.) Explicit env vars still win.
  */
-const PROD_INSFORGE_BASE_URL = "https://srctyff5.us-east.insforge.app";
-const PROD_INSFORGE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY";
+// FORK: this is OUR self-hosted InsForge (see the server notes in
+// MODIFICATIONS.md), not upstream's project. It is the fallback for builds that
+// don't inject VITE_INSFORGE_BASE_URL (the desktop apps' bundled dashboard).
+const PROD_INSFORGE_BASE_URL = "https://tt.977744.xyz";
+// Self-hosted InsForge issues an `anon_*` key rather than a role=anon JWT.
+// It is public by design (it ships in every bundle and cannot read another
+// user's rows on its own).
+const PROD_INSFORGE_ANON_KEY = "anon_8b315a83487de79bc4d17a5089d81d02b55184ab";
 
 /**
  * InsForge 云端（SDK OAuth/Session）。`getInsforgeBaseUrl()` 在 localhost 有 env 时同样指向云端。

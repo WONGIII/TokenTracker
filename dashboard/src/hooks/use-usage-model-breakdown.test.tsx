@@ -32,7 +32,7 @@ describe("useUsageModelBreakdown", () => {
     const { result, rerender } = renderHook(
       ({ from, to }) =>
         useUsageModelBreakdown({
-          baseUrl: "https://app.tokentracker.cc",
+          baseUrl: "https://tt.977744.xyz",
           from,
           to,
           cacheKey: "provider-race",

@@ -461,7 +461,7 @@ export function ProfileContent({ data, currency, rate, onClose, variant = "modal
   // leaderboard user_id matches the signed-in InsForge auth user id.
   const auth = useInsforgeAuth();
   const isOwnProfile = Boolean(auth?.user?.id && user?.user_id && auth.user.id === user.user_id);
-  const profileUrl = user?.user_id ? `https://www.tokentracker.cc/u/${user.user_id}` : null;
+  const profileUrl = user?.user_id ? `https://tt.977744.xyz/u/${user.user_id}` : null;
   const badgeSnippet = user?.user_id
     ? `[![My AI coding usage](${getInsforgeRemoteUrl()}/functions/tokentracker-embed-svg?user_id=${user.user_id}&theme=dark)](${profileUrl}?ref=readme)`
     : null;

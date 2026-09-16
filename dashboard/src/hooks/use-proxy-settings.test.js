@@ -39,7 +39,7 @@ describe("useProxySettings", () => {
   });
 
   it("does not fetch and stays unavailable on a non-loopback host", async () => {
-    setHostname("www.tokentracker.cc");
+    setHostname("tt.977744.xyz");
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
 

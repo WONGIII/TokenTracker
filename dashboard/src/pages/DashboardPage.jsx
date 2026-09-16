@@ -112,7 +112,7 @@ function getHeatmapValue(cell) {
 
 function isProductionHost(hostname) {
   if (!hostname) return false;
-  return hostname === "www.tokentracker.cc" || hostname === "tokentracker.cc";
+  return hostname === "tt.977744.xyz" || hostname === "tt.977744.xyz";
 }
 
 function isForceInstallEnabled() {
@@ -175,7 +175,7 @@ export function DashboardPage({
   const guestAllowed = signedIn && sessionSoftExpired && !publicMode;
 
   // Cloud (cross-device account view) — driven by Settings → Cloud sync toggle
-  // on localhost, mandatory on public hosts (www.tokentracker.cc et al.).
+  // on localhost, mandatory on public hosts (tt.977744.xyz et al.).
   // publicMode (shared link) opts out of account view entirely.
   const {
     accountView: accountViewBase,

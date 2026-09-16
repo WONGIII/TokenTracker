@@ -246,7 +246,7 @@ function renderProfileCard(opts: {
 
     <text x="460" y="88" font-size="11" font-weight="600" fill="${p.muted}">TOP PROVIDERS</text>
 
-    <text x="455" y="40" font-size="11" fill="${p.muted}" text-anchor="end">www.tokentracker.cc</text>
+    <text x="455" y="40" font-size="11" fill="${p.muted}" text-anchor="end">tt.977744.xyz</text>
     <text x="585" y="40" font-size="11" font-weight="700" fill="${p.accent}" text-anchor="end">TT</text>
   </g>
 

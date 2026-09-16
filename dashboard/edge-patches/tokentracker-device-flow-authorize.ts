@@ -11,8 +11,8 @@
  *   {
  *     device_code: <opaque, ~64 chars>,    // CLI keeps; never shown to user
  *     user_code:   "AB12-CD34",             // user types this in the browser
- *     verification_uri: "https://www.tokentracker.cc/device",
- *     verification_uri_complete: "https://www.tokentracker.cc/device?user_code=AB12-CD34",
+ *     verification_uri: "https://tt.977744.xyz/device",
+ *     verification_uri_complete: "https://tt.977744.xyz/device?user_code=AB12-CD34",
  *     expires_in: 900,                      // seconds
  *     interval: 5                           // poll cadence in seconds
  *   }
@@ -113,8 +113,8 @@ export default async function (req: Request): Promise<Response> {
       return json({
         device_code,
         user_code,
-        verification_uri: "https://www.tokentracker.cc/device",
-        verification_uri_complete: `https://www.tokentracker.cc/device?user_code=${encodeURIComponent(user_code)}`,
+        verification_uri: "https://tt.977744.xyz/device",
+        verification_uri_complete: `https://tt.977744.xyz/device?user_code=${encodeURIComponent(user_code)}`,
         expires_in: 900,
         interval: 5,
       });

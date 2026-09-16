@@ -35,7 +35,7 @@ describe("useActivityHeatmap request ordering", () => {
     const { result, rerender } = renderHook(
       ({ deviceId }) =>
         useActivityHeatmap({
-          baseUrl: "https://app.tokentracker.cc",
+          baseUrl: "https://tt.977744.xyz",
           cacheKey: "heatmap-race",
           weeks: 4,
           timeZone: "UTC",
@@ -79,7 +79,7 @@ describe("useActivityHeatmap request ordering", () => {
 
     const { result } = renderHook(() =>
       useActivityHeatmap({
-        baseUrl: "https://app.tokentracker.cc",
+        baseUrl: "https://tt.977744.xyz",
         cacheKey: "heatmap-manual-race",
         weeks: 4,
         timeZone: "UTC",

@@ -23,7 +23,7 @@ function buildGrantUrl() {
   // VITE env var that initialized the client.
   const baseUrl =
     (import.meta.env && import.meta.env.VITE_INSFORGE_BASE_URL) ||
-    "https://srctyff5.us-east.insforge.app";
+    "https://tt.977744.xyz";
   return `${baseUrl.replace(/\/$/, "")}/functions/tokentracker-device-flow-grant`;
 }
 
