@@ -95,12 +95,12 @@ create index if not exists tokentracker_device_codes_user_code_idx
     on public.tokentracker_device_codes (user_code);
 
 -- ── per-user profile / settings ─────────────────────────────────────────────
-create table if not exists public.tokentracker_user_profiles (
-    user_id      uuid        primary key references auth.users (id) on delete cascade,
-    display_name text,
-    avatar_url   text,
-    updated_at   timestamptz not null default now()
-);
+-- NOTE: this is a VIEW, not a table. The first version of this reconstruction
+-- created it as a table, and that silently broke every profile write: the
+-- public-visibility function stores display_name/avatar_url in
+-- tokentracker_user_settings and reads them back through this name, so a stray
+-- empty table made "save avatar" look like it worked while the value never came
+-- back. The view is defined after tokentracker_user_settings below.
 
 create table if not exists public.tokentracker_user_settings (
     user_id                 uuid        primary key references auth.users (id) on delete cascade,
@@ -122,6 +122,28 @@ create table if not exists public.tokentracker_public_views (
     updated_at   timestamptz not null default now(),
     revoked_at   timestamptz
 );
+
+-- The profile read model. `tokentracker_user_settings` is the single writable
+-- row per user; this view layers the auth profile on top of it, so a value saved
+-- by the public-visibility function is what every reader — the settings page, the
+-- identity chip in the header, the leaderboard metadata RPC — actually sees.
+create or replace view public.tokentracker_user_profiles as
+select
+    u.id as user_id,
+    coalesce(
+        s.display_name,
+        u.profile ->> 'name',
+        u.profile ->> 'display_name',
+        split_part(u.email, '@', 1)
+    ) as display_name,
+    coalesce(
+        s.avatar_url,
+        u.profile ->> 'avatar_url',
+        u.profile ->> 'picture'
+    ) as avatar_url,
+    coalesce(s.updated_at, u.created_at, now()) as updated_at
+from auth.users u
+left join public.tokentracker_user_settings s on s.user_id = u.id;
 
 -- ── device skill inventory ──────────────────────────────────────────────────
 create table if not exists public.tokentracker_device_skill_inventories (
