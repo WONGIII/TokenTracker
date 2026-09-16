@@ -549,6 +549,11 @@ const KNOWN_SOURCES = new Set([
   "acode", "codex", "claude", "gemini", "cursor", "opencode", "openclaw",
   "hermes", "kiro", "copilot", "pi-anthropic", "pi-github-copilot",
   "pi-copilot", "kimi", "droid",
+  // DeepSeek Harness writes source "dsh". Without it here its usage landed in the
+  // "other" bucket in the profile modal's by_provider list, so the modal showed
+  // 4.5e9 tokens under a generic label while the leaderboard table already had a
+  // DeepSeek Harness column.
+  "dsh", "deepseek",
 ]);
 function canonicalSource(s: string) {
   return KNOWN_SOURCES.has(s) ? s : "other";
