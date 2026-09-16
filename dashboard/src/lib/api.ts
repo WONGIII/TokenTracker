@@ -358,6 +358,7 @@ export async function setPublicVisibility({
   enabled,
   anonymous,
   display_name,
+  avatar_url,
   github_url,
   show_github_url,
 }: AnyRecord = {}) {
@@ -365,6 +366,11 @@ export async function setPublicVisibility({
   if (enabled !== undefined) body.enabled = Boolean(enabled);
   if (anonymous !== undefined) body.anonymous = Boolean(anonymous);
   if (display_name !== undefined) body.display_name = String(display_name);
+  // null clears the URL, so presence has to be tested with !== undefined. Until
+  // this was added the field was silently dropped here: the editor opened, the
+  // value was typed, the request went out WITHOUT avatar_url, and the server had
+  // nothing to save — which is why "nothing ever loaded it back".
+  if (avatar_url !== undefined) body.avatar_url = avatar_url === null ? null : String(avatar_url);
   // null is a valid value (clears the URL), so check for presence via `in`-style
   if (github_url !== undefined) body.github_url = github_url === null ? null : String(github_url);
   if (show_github_url !== undefined) body.show_github_url = Boolean(show_github_url);

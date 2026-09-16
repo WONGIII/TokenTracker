@@ -59,14 +59,14 @@ landing.meta.title,landing,LandingPage,Meta,title,"Token Tracker — AI Token Us
 landing.meta.description,landing,LandingPage,Meta,description,"Free, open-source, local-first tracker that monitors AI token usage and cost across Claude Code, Codex, Cursor, Gemini and 27 CLIs. One-command install, privacy-first.",,active
 landing.meta.og_site_name,landing,LandingPage,Meta,og_site_name,"Token Tracker",,active
 landing.meta.og_type,landing,LandingPage,Meta,og_type,"website",,active
-landing.meta.og_image,landing,LandingPage,Meta,og_image,"https://tt.977744.xyz/dashboard-dark.png",,active
+landing.meta.og_image,landing,LandingPage,Meta,og_image,"https://tt.977744.xyz/zzh-dashboard.png",,active
 landing.meta.og_url,landing,LandingPage,Meta,og_url,"https://tt.977744.xyz/",,active
 landing.meta.twitter_card,landing,LandingPage,Meta,twitter_card,"summary_large_image",,active
 share.meta.title,share,SharePage,Meta,title,"Token Tracker Share",,active
 share.meta.description,share,SharePage,Meta,description,"Share a Token Tracker dashboard snapshot with token usage insights across models, projects, and time windows.",,active
 share.meta.og_site_name,share,SharePage,Meta,og_site_name,"Token Tracker",,active
 share.meta.og_type,share,SharePage,Meta,og_type,"website",,active
-share.meta.og_image,share,SharePage,Meta,og_image,"https://tt.977744.xyz/dashboard-dark.png",,active
+share.meta.og_image,share,SharePage,Meta,og_image,"https://tt.977744.xyz/zzh-dashboard.png",,active
 share.meta.og_url,share,SharePage,Meta,og_url,"https://tt.977744.xyz/share",,active
 share.meta.twitter_card,share,SharePage,Meta,twitter_card,"summary_large_image",,active
 landing.cta.primary,landing,LandingPage,LandingPage,cta_primary,"View Dashboard",,active

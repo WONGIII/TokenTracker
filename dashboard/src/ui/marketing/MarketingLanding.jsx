@@ -146,7 +146,7 @@ export function MarketingLanding({
         <CapabilitiesSection
           copy={copy}
           animate={animate}
-          screenshotSrc="/dashboard-dark.png"
+          screenshotSrc="/zzh-dashboard.png"
           screenshotAlt={copy("landing.screenshot.alt")}
         />
         <ToolsStrip copy={copy} animate={animate} />

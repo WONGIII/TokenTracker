@@ -182,6 +182,44 @@ export default async function (req: Request): Promise<Response> {
       ? me
       : null;
 
+  // FORK: resolve avatars (and display names) from the LIVE profile, exactly the
+  // way the profile modal does. The snapshot only carries what was true when the
+  // refresh last ran, so an avatar saved a minute ago stayed invisible in this list
+  // while the modal — which prefers the live row — already showed it. Fail-soft:
+  // a profile hiccup must not take the leaderboard down.
+  let liveProfiles: Record<string, { display_name?: string | null; avatar_url?: string | null }> = {};
+  {
+    const profileIds = [
+      ...new Set(
+        [...visibleEntries, visibleMe]
+          .map((e) => (e as { user_id?: string } | null)?.user_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    if (profileIds.length > 0) {
+      try {
+        const { data: profileRows } = await client.database
+          .from("tokentracker_user_profiles")
+          .select("user_id, display_name, avatar_url")
+          .in("user_id", profileIds);
+        for (const row of (profileRows || []) as {
+          user_id?: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+        }[]) {
+          if (row?.user_id) {
+            liveProfiles[row.user_id] = {
+              display_name: row.display_name ?? null,
+              avatar_url: row.avatar_url ?? null,
+            };
+          }
+        }
+      } catch {
+        /* ignore: the snapshot values below are still a usable fallback */
+      }
+    }
+  }
+
   // Achievement badges: one RPC for the page's users (top-3 per user by tier,
   // then catalog order). Exposure policy mirrors the profile modal: presence
   // in the snapshot table already makes aggregate numbers public, and badges
@@ -227,11 +265,23 @@ export default async function (req: Request): Promise<Response> {
     .find((value): value is string => Boolean(value)) ?? null;
 
   return json({
-    entries: visibleEntries.map((e: { user_id?: string }) => ({
-      ...e,
-      ...badgesFor(e),
-      is_me: (visibleMe as { user_id?: string } | null)?.user_id === e.user_id,
-    })),
+    entries: visibleEntries.map((e: { user_id?: string; display_name?: string | null; avatar_url?: string | null }) => {
+      const live = liveProfiles[e.user_id || ""] || null;
+      // Anonymous rows must stay anonymous: the refresh stores "Anonymous" as the
+      // display name for opted-in anonymous users, and their avatar stays null.
+      const anonymous = String(e.display_name || "") === "Anonymous";
+      return {
+        ...e,
+        ...(live && !anonymous
+          ? {
+              display_name: live.display_name || e.display_name || null,
+              avatar_url: live.avatar_url || e.avatar_url || null,
+            }
+          : {}),
+        ...badgesFor(e),
+        is_me: (visibleMe as { user_id?: string } | null)?.user_id === e.user_id,
+      };
+    }),
     me: visibleMe ? { ...(visibleMe as Record<string, unknown>), ...badgesFor(visibleMe as { user_id?: string }) } : null,
     total_entries: count || 0,
     total_pages: Math.ceil((count || 0) / limit),
