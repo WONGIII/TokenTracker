@@ -111,7 +111,7 @@ export default async function (req: Request): Promise<Response> {
       .maybeSingle();
     const { data: profile } = await client.database
       .from("tokentracker_user_profiles")
-      .select("display_name")
+      .select("display_name, avatar_url")
       .eq("user_id", userId)
       .maybeSingle();
     return json({
@@ -120,6 +120,7 @@ export default async function (req: Request): Promise<Response> {
       share_token: pv?.token_hash || null,
       updated_at: data?.updated_at || null,
       display_name: profile?.display_name || null,
+      avatar_url: profile?.avatar_url || null,
       github_url: data?.github_url || null,
       show_github_url: data?.show_github_url || false,
     });
@@ -129,6 +130,7 @@ export default async function (req: Request): Promise<Response> {
       enabled?: boolean;
       anonymous?: boolean;
       display_name?: string;
+      avatar_url?: string | null;
       github_url?: string | null;
       show_github_url?: boolean;
     };
@@ -164,6 +166,30 @@ export default async function (req: Request): Promise<Response> {
       normalizedDisplayName = body.display_name.trim().slice(0, 50) || null;
     }
 
+    // FORK: the avatar used to arrive from the OAuth provider's profile, and this
+    // fork has no OAuth, so the client sends an explicit image URL instead.
+    // Only http(s) is accepted: a javascript: or data: value must never reach an
+    // <img src> in the leaderboard or the profile modal.
+    let normalizedAvatarUrl: string | null | undefined = undefined;
+    if (body.avatar_url !== undefined) {
+      if (body.avatar_url === null || (typeof body.avatar_url === "string" && body.avatar_url.trim() === "")) {
+        normalizedAvatarUrl = null;
+      } else if (typeof body.avatar_url === "string") {
+        let parsed: URL | null = null;
+        try {
+          parsed = new URL(body.avatar_url.trim().slice(0, 500));
+        } catch {
+          parsed = null;
+        }
+        if (!parsed || (parsed.protocol !== "https:" && parsed.protocol !== "http:")) {
+          return json({ error: "avatar_url must be an http(s) image URL" }, 400);
+        }
+        normalizedAvatarUrl = parsed.toString();
+      } else {
+        return json({ error: "avatar_url must be a string" }, 400);
+      }
+    }
+
     // Persist everything to tokentracker_user_settings — the writable base table.
     //
     // display_name MUST be written here, NOT to tokentracker_user_profiles:
@@ -178,7 +204,8 @@ export default async function (req: Request): Promise<Response> {
       body.anonymous !== undefined ||
       normalizedGithubUrl !== undefined ||
       body.show_github_url !== undefined ||
-      normalizedDisplayName !== undefined
+      normalizedDisplayName !== undefined ||
+      normalizedAvatarUrl !== undefined
     ) {
       const upsertRow: Record<string, unknown> = {
         user_id: userId,
@@ -189,6 +216,7 @@ export default async function (req: Request): Promise<Response> {
       if (normalizedGithubUrl !== undefined) upsertRow.github_url = normalizedGithubUrl;
       if (body.show_github_url !== undefined) upsertRow.show_github_url = Boolean(body.show_github_url);
       if (normalizedDisplayName !== undefined) upsertRow.display_name = normalizedDisplayName;
+      if (normalizedAvatarUrl !== undefined) upsertRow.avatar_url = normalizedAvatarUrl;
       const { error: settingsErr } = await client.database.from("tokentracker_user_settings").upsert(
         upsertRow,
         { onConflict: "user_id" },
@@ -202,6 +230,7 @@ export default async function (req: Request): Promise<Response> {
     if (body.enabled !== undefined) result.enabled = Boolean(body.enabled);
     if (body.anonymous !== undefined) result.anonymous = Boolean(body.anonymous);
     if (normalizedDisplayName !== undefined) result.display_name = normalizedDisplayName;
+    if (normalizedAvatarUrl !== undefined) result.avatar_url = normalizedAvatarUrl;
     if (normalizedGithubUrl !== undefined) result.github_url = normalizedGithubUrl;
     if (body.show_github_url !== undefined) result.show_github_url = Boolean(body.show_github_url);
     return json(result);

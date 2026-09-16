@@ -597,5 +597,9 @@
   "limits.accounts.error_provider": "先にアダプタを選んでください。",
   "limits.accounts.error_label": "アカウントに名前を付けてください。",
   "limits.accounts.error_key": "API キーを貼り付けてください。",
-  "limits.accounts.error_home": "プロファイルディレクトリを入力してください。"
+  "limits.accounts.error_home": "プロファイルディレクトリを入力してください。",
+  "settings.account.avatar": "アバター画像 URL",
+  "settings.account.avatarHint": "画像のリンク（https）を貼り付けてください",
+  "settings.account.avatarPlaceholder": "https://example.com/me.png",
+  "settings.account.avatarInvalid": "http(s) で始まる画像 URL を入力してください。"
 }

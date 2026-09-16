@@ -47,11 +47,18 @@ function useProfileState(user) {
   const [githubInput, setGithubInput] = useState("");
   const [editingGithub, setEditingGithub] = useState(false);
   const [githubError, setGithubError] = useState(null);
+  // FORK: no OAuth means no provider-supplied avatar, so the user pastes an image
+  // URL. Same inline-edit shape as the GitHub field next to it.
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarInput, setAvatarInput] = useState("");
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState(null);
   const displayName = useMemo(() => pickDisplayName(user), [user]);
   const email = useMemo(() => pickEmail(user), [user]);
   const userId = useMemo(() => (typeof user?.id === "string" ? user.id.trim() : ""), [user]);
   const loadSetters = useMemo(() => ({
     setAnonymousOn,
+    setAvatarUrl,
     setCustomDisplayName,
     setGithubUrl,
     setProfileLoading,
@@ -61,6 +68,9 @@ function useProfileState(user) {
 
   return {
     anonymousOn,
+    avatarError,
+    avatarInput,
+    avatarUrl,
     customDisplayName,
     displayName,
     editingGithub,
@@ -75,7 +85,11 @@ function useProfileState(user) {
     profileSaving,
     publicProfileOn,
     setAnonymousOn,
+    setAvatarError,
+    setAvatarInput,
+    setAvatarUrl,
     setCustomDisplayName,
+    setEditingAvatar,
     setEditingGithub,
     setEditingName,
     setGithubError,
@@ -107,6 +121,7 @@ function useProfileLoad(getAccessToken, signedIn, state) {
         if (data?.display_name) state.setCustomDisplayName(data.display_name);
         state.setShowGithubOn(Boolean(data?.show_github_url));
         state.setGithubUrl(data?.github_url || "");
+        state.setAvatarUrl(data?.avatar_url || "");
       } catch (error) {
         warnSettingsAction("load public profile", error);
       } finally {
@@ -154,6 +169,47 @@ function buildNameProps(state, actions) {
     setNameInput: state.setNameInput,
     startEditingName: actions.startEditingName,
   };
+}
+
+function buildAvatarProps(state, actions) {
+  return {
+    avatarError: state.avatarError,
+    avatarInput: state.avatarInput,
+    avatarUrl: state.avatarUrl,
+    editingAvatar: state.editingAvatar,
+    handleSaveAvatar: actions.handleSaveAvatar,
+    profileLoading: state.profileLoading,
+    profileSaving: state.profileSaving,
+    setAvatarError: state.setAvatarError,
+    setAvatarInput: state.setAvatarInput,
+    setEditingAvatar: state.setEditingAvatar,
+    startEditingAvatar: actions.startEditingAvatar,
+  };
+}
+
+function useAvatarActions(state, mutateProfile) {
+  const handleSaveAvatar = useCallback(async () => {
+    const raw = state.avatarInput.trim();
+    if (raw && !/^https?:\/\//i.test(raw)) {
+      state.setAvatarError(copy("settings.account.avatarInvalid"));
+      return;
+    }
+    await mutateProfile({ avatar_url: raw || null }, {
+      label: "save avatar url",
+      onSuccess: (response) => {
+        state.setAvatarUrl(response?.avatar_url || raw);
+        state.setEditingAvatar(false);
+        state.setAvatarError(null);
+      },
+    });
+  }, [mutateProfile, state]);
+
+  const startEditingAvatar = useCallback(() => {
+    state.setAvatarInput(state.avatarUrl || "");
+    state.setEditingAvatar(true);
+  }, [state]);
+
+  return { handleSaveAvatar, startEditingAvatar };
 }
 
 function buildGithubProps(state, actions) {
@@ -274,6 +330,7 @@ export function useAccountProfileSettings() {
   const visibilityActions = useVisibilityActions(state, mutateProfile);
   const nameActions = useNameActions(state, mutateProfile, auth.refreshDisplayName);
   const githubActions = useGithubActions(state, mutateProfile);
+  const avatarActions = useAvatarActions(state, mutateProfile);
 
   return {
     ...auth,
@@ -282,6 +339,7 @@ export function useAccountProfileSettings() {
     handlePublicProfileToggle: visibilityActions.handlePublicProfileToggle,
     userId: state.userId,
     name: buildNameProps(state, { ...visibilityActions, ...nameActions }),
+    avatar: buildAvatarProps(state, avatarActions),
     github: buildGithubProps(state, githubActions),
     profileLoading: state.profileLoading,
     profileSaving: state.profileSaving,

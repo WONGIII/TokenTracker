@@ -1676,3 +1676,7 @@ limits.accounts.error_provider,ui,LimitsPage,LimitAccountsCard,accounts_error_pr
 limits.accounts.error_label,ui,LimitsPage,LimitAccountsCard,accounts_error_label,"Give the account a label.",,active
 limits.accounts.error_key,ui,LimitsPage,LimitAccountsCard,accounts_error_key,"Paste an API key.",,active
 limits.accounts.error_home,ui,LimitsPage,LimitAccountsCard,accounts_error_home,"Enter the profile directory.",,active
+settings.account.avatar,ui,SettingsPage,AccountSectionParts,avatar,"Avatar image URL",,active
+settings.account.avatarHint,ui,SettingsPage,AccountSectionParts,avatarHint,"Paste a link to an image (https)",,active
+settings.account.avatarPlaceholder,ui,SettingsPage,AccountSectionParts,avatarPlaceholder,"https://example.com/me.png",,active
+settings.account.avatarInvalid,ui,SettingsPage,AccountSectionParts,avatarInvalid,"Enter an http(s) image URL.",,active

@@ -594,5 +594,9 @@
   "limits.accounts.error_provider": "Bitte zuerst einen Adapter wählen.",
   "limits.accounts.error_label": "Gib dem Konto eine Bezeichnung.",
   "limits.accounts.error_key": "Bitte einen API-Schlüssel einfügen.",
-  "limits.accounts.error_home": "Bitte das Profilverzeichnis angeben."
+  "limits.accounts.error_home": "Bitte das Profilverzeichnis angeben.",
+  "settings.account.avatar": "Avatar-Bild-URL",
+  "settings.account.avatarHint": "Link zu einem Bild einfügen (https)",
+  "settings.account.avatarPlaceholder": "https://example.com/me.png",
+  "settings.account.avatarInvalid": "Bitte eine http(s)-Bild-URL angeben."
 }

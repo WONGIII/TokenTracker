@@ -835,5 +835,9 @@
   "limits.accounts.error_provider": "请先选择适配器。",
   "limits.accounts.error_label": "请给账号起个名字。",
   "limits.accounts.error_key": "请粘贴 API key。",
-  "limits.accounts.error_home": "请填写配置目录。"
+  "limits.accounts.error_home": "请填写配置目录。",
+  "settings.account.avatar": "头像图片 URL",
+  "settings.account.avatarHint": "粘贴一张图片的链接（https）",
+  "settings.account.avatarPlaceholder": "https://example.com/me.png",
+  "settings.account.avatarInvalid": "请填写 http(s) 开头的图片地址。"
 }

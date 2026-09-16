@@ -100,6 +100,115 @@ function EditGithubControls({
   );
 }
 
+function EditAvatarControls({
+  avatarError,
+  avatarInput,
+  handleSaveAvatar,
+  profileSaving,
+  setAvatarError,
+  setAvatarInput,
+  setEditingAvatar,
+}) {
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="url"
+          value={avatarInput}
+          onChange={(event) => {
+            setAvatarInput(event.target.value);
+            if (avatarError) setAvatarError(null);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") handleSaveAvatar();
+            if (event.key === "Escape") {
+              setEditingAvatar(false);
+              setAvatarError(null);
+            }
+          }}
+          maxLength={500}
+          autoFocus
+          className="flex-1 rounded-md border border-oai-gray-300 bg-transparent px-2.5 py-1.5 text-sm text-oai-black outline-none focus:border-oai-gray-500 dark:border-oai-gray-700 dark:text-white"
+          placeholder={copy("settings.account.avatarPlaceholder")}
+        />
+        <InlineEditorActions
+          disabled={profileSaving}
+          onCancel={() => {
+            setEditingAvatar(false);
+            setAvatarError(null);
+          }}
+          onSave={handleSaveAvatar}
+          saveLabel={profileSaving ? copy("settings.account.saving") : undefined}
+        />
+      </div>
+      {avatarError ? (
+        <div className="mt-1.5 text-xs text-red-600 dark:text-red-400">{avatarError}</div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Avatar image URL.
+ *
+ * FORK: upstream filled avatar_url in from the OAuth provider's profile, and this
+ * fork removed OAuth, so the value has to come from the user. Only http(s) is
+ * accepted (validated again server-side) so nothing script-like can reach an
+ * <img src> on the leaderboard.
+ */
+function AvatarUrlField({ avatar }) {
+  const {
+    avatarError,
+    avatarInput,
+    avatarUrl,
+    editingAvatar,
+    handleSaveAvatar,
+    profileLoading,
+    profileSaving,
+    setAvatarError,
+    setAvatarInput,
+    setEditingAvatar,
+    startEditingAvatar,
+  } = avatar;
+
+  return (
+    <SettingsField
+      label={copy("settings.account.avatar")}
+      editing={editingAvatar}
+      hint={avatarUrl || copy("settings.account.avatarHint")}
+      editor={
+        <EditAvatarControls
+          avatarError={avatarError}
+          avatarInput={avatarInput}
+          handleSaveAvatar={handleSaveAvatar}
+          profileSaving={profileSaving}
+          setAvatarError={setAvatarError}
+          setAvatarInput={setAvatarInput}
+          setEditingAvatar={setEditingAvatar}
+        />
+      }
+      actions={
+        <div className="flex shrink-0 items-center gap-2">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded-full object-cover ring-1 ring-oai-gray-200 dark:ring-oai-gray-700"
+            />
+          ) : null}
+          <EditButton
+            label={copy("settings.account.edit")}
+            onClick={startEditingAvatar}
+            disabled={profileLoading || profileSaving}
+          />
+        </div>
+      }
+    />
+  );
+}
+
 function EditButton({ disabled = false, label, onClick, title }) {
   return (
     <button
@@ -265,10 +374,11 @@ export function SignedOutAccountSection() {
   );
 }
 
-export function PublicProfileFields({ name, github }) {
+export function PublicProfileFields({ name, github, avatar }) {
   return (
     <>
       <DisplayNameField name={name} />
+      {avatar ? <AvatarUrlField avatar={avatar} /> : null}
       <GithubProfileField github={github} />
     </>
   );

@@ -776,5 +776,9 @@
   "limits.accounts.error_provider": "請先選擇適配器。",
   "limits.accounts.error_label": "請給帳號一個名稱。",
   "limits.accounts.error_key": "請貼上 API key。",
-  "limits.accounts.error_home": "請填寫設定目錄。"
+  "limits.accounts.error_home": "請填寫設定目錄。",
+  "settings.account.avatar": "頭像圖片 URL",
+  "settings.account.avatarHint": "貼上一張圖片的連結（https）",
+  "settings.account.avatarPlaceholder": "https://example.com/me.png",
+  "settings.account.avatarInvalid": "請填寫 http(s) 開頭的圖片網址。"
 }

@@ -25,7 +25,12 @@ export function AccountSection() {
         disabled={settings.profileLoading || settings.profileSaving}
         onChange={settings.handlePublicProfileToggle}
       />
-      <PublicProfileDetails visible={settings.publicProfileOn} name={settings.name} github={settings.github} />
+      <PublicProfileDetails
+        visible={settings.publicProfileOn}
+        name={settings.name}
+        github={settings.github}
+        avatar={settings.avatar}
+      />
     </SectionCard>
   );
 }
@@ -115,7 +120,7 @@ function PublicProfileToggleRow({ checked, disabled, onChange }) {
   );
 }
 
-function PublicProfileDetails({ visible, name, github }) {
+function PublicProfileDetails({ visible, name, github, avatar }) {
   return (
     <AnimatePresence initial={false}>
       {visible ? (
@@ -131,7 +136,7 @@ function PublicProfileDetails({ visible, name, github }) {
           style={{ overflow: "hidden" }}
           className="divide-y divide-oai-gray-200/60 dark:divide-oai-gray-800/60"
         >
-          <PublicProfileFields name={name} github={github} />
+          <PublicProfileFields name={name} github={github} avatar={avatar} />
         </motion.div>
       ) : null}
     </AnimatePresence>
