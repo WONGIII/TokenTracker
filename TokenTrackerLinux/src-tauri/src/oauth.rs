@@ -85,7 +85,7 @@ fn desktop_exec_quote(path: &Path) -> Option<String> {
 pub fn appimage_desktop_entry(appimage: &Path) -> Option<String> {
     let executable = desktop_exec_quote(appimage)?;
     Some(format!(
-        "[Desktop Entry]\nType=Application\nName=TokenTracker\nComment=Local AI token usage tracker\nExec={executable} %u\nIcon=tokentracker-linux\nTerminal=false\nCategories=Development;Utility;\nStartupNotify=true\nMimeType=x-scheme-handler/tokentracker;\nX-AppImage-Integrate=false\n"
+        "[Desktop Entry]\nType=Application\nName=TokenTracker\nComment=Local AI token usage tracker\nExec={executable} %u\nIcon=tokentracker-linux\nTerminal=false\nCategories=Development;Utility;\nStartupNotify=true\nMimeType=x-scheme-handler/ttzzh;\nX-AppImage-Integrate=false\n"
     ))
 }
 

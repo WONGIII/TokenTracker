@@ -169,7 +169,8 @@ test('Arch package validator checks the shipped runtime contract', () => {
   }
 
   assert.match(validator, /desktop-file-validate/);
-  assert.match(validator, /x-scheme-handler\/tokentracker/);
+  // FORK: the desktop entry registers this fork's deep-link scheme.
+  assert.match(validator, /x-scheme-handler\/ttzzh/);
   assert.match(validator, /22\.22\.2/);
   assert.match(validator, /tokentracker-user-status/);
 });
