@@ -73,6 +73,10 @@ function useProfileState(user) {
     avatarUrl,
     customDisplayName,
     displayName,
+    // NOTE: every piece of state the props builders read must be listed here.
+    // `editingAvatar` was set but not returned, so the field read `undefined`
+    // and its editor never opened — the button looked dead while its handler ran.
+    editingAvatar,
     editingGithub,
     editingName,
     email,
