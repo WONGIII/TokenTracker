@@ -232,7 +232,7 @@ function EditButton({ disabled = false, label, onClick, title }) {
  * rendering old numbers with no way to force a refetch short of clearing site data
  * by hand — so expose exactly that, scoped to this app's own keys.
  */
-function ClearCacheRow() {
+export function ClearCacheRow() {
   const [cleared, setCleared] = React.useState(false);
   const handleClear = React.useCallback(() => {
     const PREFIX = "tokentracker";

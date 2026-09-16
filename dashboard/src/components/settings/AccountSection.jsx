@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, LogOut } from "lucide-react";
 import { copy } from "../../lib/copy";
 import { useAccountProfileSettings } from "./useAccountProfileSettings.js";
-import { PublicProfileFields, SignedOutAccountSection } from "./AccountSectionParts.jsx";
+import { ClearCacheRow, PublicProfileFields, SignedOutAccountSection } from "./AccountSectionParts.jsx";
 import { SectionCard, SettingsRow, ToggleSwitch } from "./Controls.jsx";
 
 export function AccountSection() {
