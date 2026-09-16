@@ -143,3 +143,9 @@ TokenTrackerLinux/packaging/arch/tokentracker-linux/pkg/
 TokenTrackerLinux/packaging/arch/tokentracker-linux/src/
 TokenTrackerLinux/packaging/arch/tokentracker-linux/*.pkg.tar.*
 TokenTrackerLinux/packaging/arch/tokentracker-linux/*.log
+
+# Local scratch copy of the pricing tables (not part of the project).
+# Ignored here rather than per git-add call: passing a CJK path through
+# PowerShell mangled it, the pathspec silently matched nothing, and a copy of
+# the pricing directory ended up committed.
+pricing - 副本/
