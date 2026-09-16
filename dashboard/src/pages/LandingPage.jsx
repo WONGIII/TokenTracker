@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { copy } from "../lib/copy";
-import { safeWriteClipboard } from "../lib/safe-browser";
 import { isScreenshotModeEnabled } from "../lib/screenshot-mode";
 import { MarketingLanding } from "../ui/marketing/MarketingLanding.jsx";
 import { shouldDeferMount } from "./should-defer-mount.js";
@@ -66,30 +65,10 @@ export function LandingPage({ signInUrl, signUpUrl }) {
     }
   }, [installEntryKey]);
 
-  const installCommand = copy("landing.install.command");
-  const [installCopied, setInstallCopied] = useState(false);
-  const installCopiedTimerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (installCopiedTimerRef.current != null) {
-        window.clearTimeout(installCopiedTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleCopyInstall = async () => {
-    const didCopy = await safeWriteClipboard(installCommand);
-    if (!didCopy) return;
-    if (installCopiedTimerRef.current != null) {
-      window.clearTimeout(installCopiedTimerRef.current);
-    }
-    setInstallCopied(true);
-    installCopiedTimerRef.current = window.setTimeout(() => {
-      setInstallCopied(false);
-      installCopiedTimerRef.current = null;
-    }, 2000);
-  };
+  // FORK: the "npx --yes tokentracker-cli" install block is gone from the landing
+  // page — that package is upstream's, so following it installs the original
+  // tracker instead of this build. The download buttons are the only install
+  // path this fork publishes, and the state that fed the copy button went with it.
 
   return (
     <MarketingLanding
@@ -99,9 +78,6 @@ export function LandingPage({ signInUrl, signUpUrl }) {
       effectsReady={effectsReady}
       signInUrl={signInUrl}
       signUpUrl={signUpUrl}
-      installCommand={installCommand}
-      installCopied={installCopied}
-      onCopyInstallCommand={handleCopyInstall}
     />
   );
 }

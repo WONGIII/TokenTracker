@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInsforgeAuth } from "../contexts/InsforgeAuthContext.jsx";
+import { getPublicVisibility } from "../lib/api";
 import { useLoginModal } from "../contexts/LoginModalContext.jsx";
 import { useLocale } from "../hooks/useLocale.js";
 import { isNativeApp } from "../lib/native-bridge.js";
@@ -13,6 +14,45 @@ function pickAvatarUrl(user) {
   const prof = user.profile && typeof user.profile === "object" ? user.profile : {};
   const u = meta.avatar_url || meta.picture || prof.avatar_url || user.avatar_url;
   return typeof u === "string" && u.trim() ? u.trim() : null;
+}
+
+/**
+ * FORK: OAuth used to be the only source of an avatar URL, and this fork has no
+ * OAuth — so the identity control fell back to initials even after the user set
+ * an avatar in Settings → Account. Everything the account section writes lives in
+ * the profile store behind tokentracker-public-visibility, so read it from there
+ * too (metadata still wins when a provider did supply one).
+ *
+ * Listens for `tt:profile-updated` so saving the field updates this chip without
+ * a page reload.
+ */
+function useProfileAvatarUrl(signedIn, getAccessToken) {
+  const [url, setUrl] = React.useState("");
+  React.useEffect(() => {
+    if (!signedIn || typeof getAccessToken !== "function") {
+      setUrl("");
+      return undefined;
+    }
+    let active = true;
+    const load = async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token || !active) return;
+        const data = await getPublicVisibility({ accessToken: token });
+        if (active) setUrl(typeof data?.avatar_url === "string" ? data.avatar_url.trim() : "");
+      } catch {
+        /* a profile fetch must never break the header */
+      }
+    };
+    void load();
+    const onUpdated = () => void load();
+    globalThis.addEventListener?.("tt:profile-updated", onUpdated);
+    return () => {
+      active = false;
+      globalThis.removeEventListener?.("tt:profile-updated", onUpdated);
+    };
+  }, [signedIn, getAccessToken]);
+  return url;
 }
 
 // In TokenTrackerBar WKWebView, third-party avatar CDNs (lh3.googleusercontent.com,
@@ -42,10 +82,14 @@ export function InsforgeUserHeaderControls({ className, variant = "header", coll
   // Subscribe to locale so labels re-render on language switch.
   useLocale();
   const isSidebar = variant === "sidebar";
-  const { enabled, loading, signedIn, user, displayName } = useInsforgeAuth();
+  const { enabled, loading, signedIn, user, displayName, getAccessToken } = useInsforgeAuth();
   const { openLoginModal } = useLoginModal();
   const navigate = useNavigate();
-  const avatarUrl = useMemo(() => pickAvatarUrl(user), [user]);
+  const profileAvatarUrl = useProfileAvatarUrl(signedIn, getAccessToken);
+  const avatarUrl = useMemo(
+    () => pickAvatarUrl(user) || profileAvatarUrl || null,
+    [user, profileAvatarUrl],
+  );
   const avatarSrc = useMemo(() => resolveAvatarSrc(avatarUrl), [avatarUrl]);
   const [avatarFailed, setAvatarFailed] = React.useState(false);
 

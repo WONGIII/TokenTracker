@@ -31,9 +31,9 @@ export function MarketingLanding({
   effectsReady,
   signInUrl,
   signUpUrl,
-  installCommand,
-  installCopied,
-  onCopyInstallCommand,
+
+
+
 }) {
   // One switch for every scroll/canvas animation on the page: reduced motion
   // and the visual-baseline screenshot job both get the complete static page.
@@ -53,8 +53,6 @@ export function MarketingLanding({
   const { openLoginModal } = useLoginModal();
 
   const stats = useCommunityStats();
-  const tokenFallback = Number(copy("landing.v3.stats.fallback_tokens")) || 0;
-  const devsFallback = Number(copy("landing.v3.stats.fallback_devs")) || 0;
   const githubLabel = copy("landing.cta.secondary");
 
   return (
@@ -141,11 +139,6 @@ export function MarketingLanding({
           animate={animate}
           effectsReady={effectsReady}
           stats={stats}
-          tokenFallback={tokenFallback}
-          devsFallback={devsFallback}
-          installCommand={installCommand}
-          installCopied={installCopied}
-          onCopyInstallCommand={onCopyInstallCommand}
           githubLabel={githubLabel}
         />
         {/* Show the product first (capabilities + screenshot), enumerate the
@@ -163,15 +156,10 @@ export function MarketingLanding({
           copy={copy}
           animate={animate}
           stats={stats}
-          tokenFallback={tokenFallback}
-          devsFallback={devsFallback}
         />
         <DownloadSection
           copy={copy}
           animate={animate}
-          installCommand={installCommand}
-          installCopied={installCopied}
-          onCopyInstallCommand={onCopyInstallCommand}
           githubLabel={githubLabel}
         />
       </main>

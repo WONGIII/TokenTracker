@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { gsap } from "./gsap.js";
-import { InstallCommand } from "./InstallCommand.jsx";
 import { DownloadButtons } from "./DownloadButtons.jsx";
 
 // Deterministic sparse starfield (CSS-only echo of the hero galaxy — no
@@ -17,7 +16,7 @@ const STARS = Array.from({ length: 46 }, (_, i) => ({
 /**
  * Closing CTA: a purple horizon glow rises behind a final install prompt.
  */
-export function DownloadSection({ copy, animate, installCommand, installCopied, onCopyInstallCommand, githubLabel }) {
+export function DownloadSection({ copy, animate, githubLabel }) {
   const sectionRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -134,13 +133,6 @@ export function DownloadSection({ copy, animate, installCommand, installCopied, 
           {copy("landing.v3.download.subtitle")}
         </p>
         <div className="mt-9 w-full">
-          <InstallCommand
-            copy={copy}
-            installCommand={installCommand}
-            installCopied={installCopied}
-            onCopyInstallCommand={onCopyInstallCommand}
-            reduceMotion={!animate}
-          />
         </div>
         <div className="mt-6 w-full">
           <DownloadButtons copy={copy} githubLabel={githubLabel} />

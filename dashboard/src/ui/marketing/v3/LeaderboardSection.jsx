@@ -77,7 +77,7 @@ function SkeletonRow() {
  * plus community totals in the status bar. Falls back to skeleton rows while
  * loading and to static copy numbers if the fetch fails.
  */
-export function LeaderboardSection({ copy, animate, stats, tokenFallback, devsFallback }) {
+export function LeaderboardSection({ copy, animate, stats }) {
   const sectionRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -102,8 +102,10 @@ export function LeaderboardSection({ copy, animate, stats, tokenFallback, devsFa
   const ready = stats.status === "ready";
   const top = ready ? stats.top : [];
   const maxTokens = top.length ? Number(top[0]?.total_tokens) || 0 : 0;
-  const devs = ready ? stats.totalEntries : devsFallback;
-  const tokens = ready ? stats.tokenFloor : tokenFallback;
+
+  // No fallback number: the podium only renders when ready, so a
+  // placeholder here could only ever show invented data.
+  const tokens = ready ? stats.tokenFloor : 0;
 
   return (
     <section ref={sectionRef} className="relative border-t border-oai-gray-900 bg-oai-gray-950 py-16 sm:py-24 lg:py-32">
@@ -169,18 +171,10 @@ export function LeaderboardSection({ copy, animate, stats, tokenFallback, devsFa
                   : [0, 1, 2].map((i) => <SkeletonRow key={i} />)}
               </div>
 
-              <div className="flex select-none items-center justify-between border-t border-oai-gray-800/80 bg-black/[0.15] px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-oai-gray-500 sm:px-5">
-                <span>
-                  {copy("landing.v3.stats.devs_syncing", {
-                    count: (Number(devs) || 0).toLocaleString("en-US"),
-                  })}
-                </span>
-                <span>
-                  {copy("landing.v3.leaderboard.tokens_synced", {
-                    count: `${formatTokensCompact(Number(tokens) || 0)}+`,
-                  })}
-                </span>
-              </div>
+              {/* FORK: this status bar showed "N users syncing" and "X+ tokens
+                  synced" — both hardcoded fallbacks whenever the leaderboard is
+                  empty, which is every fresh deployment. Deleted rather than
+                  faked; the rows above are the real data. */}
             </BorderGlow>
           </div>
         </div>

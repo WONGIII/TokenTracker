@@ -204,6 +204,13 @@ function useAvatarActions(state, mutateProfile) {
         state.setAvatarUrl(response?.avatar_url || raw);
         state.setEditingAvatar(false);
         state.setAvatarError(null);
+        // The header/sidebar identity chip caches the profile URL; tell it to
+        // re-read so the new avatar shows without a page reload.
+        try {
+          globalThis.dispatchEvent?.(new Event("tt:profile-updated"));
+        } catch {
+          /* a missing Event constructor must not fail the save */
+        }
       },
     });
   }, [mutateProfile, state]);
