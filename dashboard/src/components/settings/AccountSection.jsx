@@ -31,6 +31,7 @@ export function AccountSection() {
         github={settings.github}
         avatar={settings.avatar}
       />
+      <ClearCacheRow />
     </SectionCard>
   );
 }

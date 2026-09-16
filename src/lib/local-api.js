@@ -41,6 +41,33 @@ const AVATAR_PROXY_MAX_BYTES = 512 * 1024; // 512 KiB per image
 const AVATAR_PROXY_MAX_ENTRIES = 64;
 const avatarProxyCache = new Map();
 
+/**
+ * True for loopback, RFC1918, link-local (cloud metadata) and other names that
+ * only resolve on the user's own network. The avatar proxy accepts any PUBLIC
+ * http(s) host — an allowlist meant users' own image hosts came back 403 — so this
+ * is what keeps it from being pointed at 169.254.169.254 or a LAN service.
+ */
+function isPrivateHostname(hostname) {
+  const host = String(hostname || "").toLowerCase().replace(/^[|]$/g, "");
+  if (!host) return true;
+  if (host === "localhost" || host.endsWith(".localhost")) return true;
+  if (host === "::1" || host === "0.0.0.0") return true;
+  if (host.endsWith(".local") || host.endsWith(".internal") || host.endsWith(".home.arpa")) return true;
+  const v4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const a = Number(v4[1]);
+    const b = Number(v4[2]);
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true; // link-local + cloud metadata
+    return false;
+  }
+  if (/^f[cd][0-9a-f]{2}:/.test(host)) return true; // IPv6 unique-local
+  if (/^fe[89ab][0-9a-f]:/.test(host)) return true; // IPv6 link-local
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // Per-model pricing — delegated to src/lib/pricing/
 //   - CURATED overrides (kiro-*, hy3-*, composer-*, kimi-for-coding, etc.)
@@ -1934,9 +1961,15 @@ function createLocalApiHandler({ queuePath }) {
         "abs.twimg.com",
         "api.dicebear.com",
       ];
-      const hostOk = AVATAR_HOST_ALLOWLIST.some(
-        (h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`),
-      );
+      // Any public http(s) host is allowed. The desktop app routes the header avatar
+      // through this proxy (LeaderboardAvatar renders its URL directly), so a fixed
+      // CDN allowlist meant the user's own image host — avatar_url accepts any URL —
+      // came back 403 and the avatar silently degraded to initials while the same
+      // image loaded fine everywhere else. Only private/loopback targets stay
+      // blocked, so the proxy cannot be pointed at the local network.
+      const hostOk =
+        AVATAR_HOST_ALLOWLIST.some((h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`)) ||
+        (!isPrivateHostname(parsed.hostname) && (parsed.protocol === "https:" || parsed.protocol === "http:"));
       if (!hostOk) {
         json(res, { error: "Host not allowed" }, 403);
         return true;

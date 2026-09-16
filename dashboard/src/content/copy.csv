@@ -574,6 +574,10 @@ settings.account.copied,ui,SettingsPage,SettingsPage,copied,"Copied",,active
 settings.account.cloudSync,ui,SettingsPage,SettingsPage,cloud_sync,"Cloud sync",,active
 settings.account.cloudSyncHint,ui,SettingsPage,SettingsPage,cloud_sync_hint,"Upload local usage to your Token Tracker cloud account.",,active
 settings.account.publicProfile,ui,SettingsPage,SettingsPage,public_profile,"Public profile",,active
+settings.account.clearCache,ui,SettingsPage,SettingsPage,cache_label,"Local cache",,active
+settings.account.clearCacheHint,ui,SettingsPage,SettingsPage,cache_hint,"Leaderboard and stats responses are cached on this device. Clear them if cloud numbers look out of date.",,active
+settings.account.clearCacheAction,ui,SettingsPage,SettingsPage,cache_action,"Clear",,active
+settings.account.clearCacheDone,ui,SettingsPage,SettingsPage,cache_done,"Cleared. Reloading…",,active
 settings.account.publicProfileHint,ui,SettingsPage,SettingsPage,public_profile_hint,"Show your usage on the public leaderboard.",,active
 settings.account.displayNameAnonymousHint,ui,SettingsPage,SettingsPage,display_name_anon_hint,"Anonymous — your name and avatar are hidden on the leaderboard",,active
 settings.account.displayNameDisabledWhileAnon,ui,SettingsPage,SettingsPage,display_name_disabled,"Turn on the switch first to edit your name",,active

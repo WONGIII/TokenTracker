@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-16T13:29:57.543Z",
+  "generatedAt": "2026-09-16T15:11:19.559Z",
   "root": "dashboard/src",
   "rules": {
     "colors": "hex/rgb(a) literals",
     "rawText": "JSX text nodes containing letters or digits"
   },
   "totals": {
-    "colors": 400,
+    "colors": 399,
     "rawText": 161
   },
   "files": {
@@ -521,7 +521,7 @@
       "rawTextTokens": [
         ") : ( // 未登录：Sign In 展示为主行动实色按钮，点击唤起 Modal",
         ") : signedIn ? ( // 已登录：Open Dashboard 升级为主行动实色按钮",
-        "Token Tracker"
+        "Token Tracker ZzH"
       ]
     },
     "dashboard/src/ui/marketing/v3/CapabilitiesSection.jsx": {
@@ -530,7 +530,7 @@
       "rawTextTokens": []
     },
     "dashboard/src/ui/marketing/v3/HeroSection.jsx": {
-      "colors": 2,
+      "colors": 1,
       "rawText": 0,
       "rawTextTokens": []
     },

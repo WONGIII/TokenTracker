@@ -184,6 +184,10 @@ export default async function (req: Request): Promise<Response> {
         if (!parsed || (parsed.protocol !== "https:" && parsed.protocol !== "http:")) {
           return json({ error: "avatar_url must be an http(s) image URL" }, 400);
         }
+        // The URL is stored exactly as given. Rewriting http to https was tried and
+        // reverted: a host that does not serve TLS would stop loading entirely, and
+        // http is not what broke anything (browsers auto-upgrade mixed images, and
+        // the desktop WebView loads http images directly).
         normalizedAvatarUrl = parsed.toString();
       } else {
         return json({ error: "avatar_url must be a string" }, 400);

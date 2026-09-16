@@ -587,6 +587,11 @@ const SOURCE_COLUMN_MAP: Record<string, string> = {
   "pi-copilot": "copilot_tokens",
   "pi-anthropic": "claude_tokens",
   kimi: "kimi_tokens",
+  // DeepSeek Harness writes source "dsh" (its own CLI). Without a column it was
+  // folded into other_tokens, so a user whose main tool is dsh saw "Other" as
+  // their biggest provider while the dashboard listed DeepSeek Harness by name.
+  dsh: "deepseek_harness_tokens",
+  deepseek: "deepseek_harness_tokens",
 };
 
 interface DateRange {
@@ -649,6 +654,7 @@ interface UserAgg {
   kiro_tokens: number;
   copilot_tokens: number;
   kimi_tokens: number;
+  deepseek_harness_tokens: number;
   other_tokens: number;
   total_tokens: number;
   estimated_cost_usd: number;
@@ -666,6 +672,7 @@ function newUserAgg(): UserAgg {
     kiro_tokens: 0,
     copilot_tokens: 0,
     kimi_tokens: 0,
+    deepseek_harness_tokens: 0,
     other_tokens: 0,
     total_tokens: 0,
     estimated_cost_usd: 0,
@@ -1262,6 +1269,7 @@ export default async function (req: Request): Promise<Response> {
         kiro_tokens: agg.kiro_tokens,
         copilot_tokens: agg.copilot_tokens,
         kimi_tokens: agg.kimi_tokens,
+        deepseek_harness_tokens: agg.deepseek_harness_tokens,
         other_tokens: agg.other_tokens,
         total_tokens: agg.total_tokens,
         estimated_cost_usd: Math.round(agg.estimated_cost_usd * 100) / 100,

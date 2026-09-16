@@ -75,8 +75,9 @@ export function MarketingLanding({
               className="flex items-center gap-3 no-underline outline-none rounded focus-visible:ring-2 focus-visible:ring-oai-brand-500 focus-visible:ring-offset-2 dark:ring-offset-oai-gray-950 transition-opacity hover:opacity-80"
             >
               <img src="/app-icon.png" alt="" width={24} height={24} className="rounded-md" />
+              {/* FORK: this fork is Token Tracker ZzH — say so on the landing page. */}
               <span className="whitespace-nowrap text-sm font-semibold uppercase tracking-wide text-white">
-                Token Tracker
+                Token Tracker ZzH
               </span>
             </Link>
             <div className="hidden sm:block">

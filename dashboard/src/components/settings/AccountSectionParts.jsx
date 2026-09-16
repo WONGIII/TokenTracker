@@ -224,6 +224,52 @@ function EditButton({ disabled = false, label, onClick, title }) {
   );
 }
 
+/**
+ * FORK: one button that drops this device's cached cloud data.
+ *
+ * Leaderboard periods, community stats and prefetched snapshots are cached in
+ * localStorage and in module memory. When one of those goes stale the UI keeps
+ * rendering old numbers with no way to force a refetch short of clearing site data
+ * by hand — so expose exactly that, scoped to this app's own keys.
+ */
+function ClearCacheRow() {
+  const [cleared, setCleared] = React.useState(false);
+  const handleClear = React.useCallback(() => {
+    const PREFIX = "tokentracker";
+    try {
+      for (const store of [globalThis.localStorage, globalThis.sessionStorage]) {
+        if (!store) continue;
+        const doomed = [];
+        for (let i = 0; i < store.length; i += 1) {
+          const key = store.key(i);
+          if (key && key.toLowerCase().startsWith(PREFIX)) doomed.push(key);
+        }
+        for (const key of doomed) store.removeItem(key);
+      }
+    } catch {
+      /* private mode / disabled storage: nothing to clear */
+    }
+    setCleared(true);
+    // Reload so every module re-reads from the network instead of its snapshot.
+    globalThis.setTimeout?.(() => globalThis.location?.reload?.(), 600);
+  }, []);
+
+  return (
+    <SettingsField
+      label={copy("settings.account.clearCache")}
+      hint={cleared ? copy("settings.account.clearCacheDone") : copy("settings.account.clearCacheHint")}
+      actions={
+        <div className="flex shrink-0 items-center gap-2">
+          <EditButton
+            label={copy("settings.account.clearCacheAction")}
+            onClick={handleClear}
+          />
+        </div>
+      }
+    />
+  );
+}
+
 function SettingsField({ actions, editing, editor, hint, label }) {
   return (
     <div className="py-3">
