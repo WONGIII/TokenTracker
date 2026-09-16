@@ -148,8 +148,13 @@ create table if not exists public.tokentracker_leaderboard_snapshots (
     claude_tokens           bigint      not null default 0,
     gemini_tokens           bigint      not null default 0,
     cursor_tokens           bigint      not null default 0,
+    opencode_tokens         bigint      not null default 0,
+    openclaw_tokens         bigint      not null default 0,
     hermes_tokens           bigint      not null default 0,
+    kiro_tokens             bigint      not null default 0,
     copilot_tokens          bigint      not null default 0,
+    kimi_tokens             bigint      not null default 0,
+    other_tokens            bigint      not null default 0,
     display_name            text,
     avatar_url              text,
     github_url              text,
@@ -159,7 +164,10 @@ create table if not exists public.tokentracker_leaderboard_snapshots (
     from_day                date,
     to_day                  date,
     generated_at            timestamptz not null default now(),
-    unique (user_id, period)
+    -- The refresh upserts on this key. It was (user_id, period) here at first,
+    -- which made every snapshot write fail with "no unique or exclusion
+    -- constraint matching the ON CONFLICT specification".
+    unique (user_id, period, from_day, to_day)
 );
 create index if not exists tokentracker_leaderboard_snapshots_rank_idx
     on public.tokentracker_leaderboard_snapshots (period, rank);
@@ -264,3 +272,48 @@ alter table public.tokentracker_hourly
     add column if not exists pricing_tier text;
 alter table public.tokentracker_leaderboard_rollup_daily_v2
     add column if not exists pricing_tier text not null default 'peak';
+
+-- ── columns the deployed edge functions write ───────────────────────────────
+-- This schema is a reconstruction, and twice it was missing a column that a
+-- shipped function writes: ingest answered 500 on every upload until
+-- billable_total_tokens existed, and the leaderboard refresh failed on
+-- kimi_tokens. The functions are the source of truth for what they write, so
+-- keep these idempotent ALTERs in step with them.
+alter table public.tokentracker_hourly
+    add column if not exists billable_total_tokens bigint not null default 0;
+alter table public.tokentracker_leaderboard_snapshots
+    add column if not exists opencode_tokens  bigint not null default 0,
+    add column if not exists openclaw_tokens  bigint not null default 0,
+    add column if not exists kiro_tokens      bigint not null default 0,
+    add column if not exists kimi_tokens      bigint not null default 0,
+    add column if not exists other_tokens     bigint not null default 0;
+
+-- The leaderboard aggregate calls this per row; without it the refresh aborts
+-- at rpc_aggregate with "function public.leaderboard_pricing_tier(text,
+-- timestamp with time zone) does not exist" and the rollups stay empty.
+-- Mirrors isDeepSeekOffPeak() in src/lib/pricing/index.js: only DeepSeek's
+-- time-priced families have an off-peak rate, peak is 01:00-04:00 and
+-- 06:00-10:00 UTC, and whole Beijing weekends bill off-peak.
+create or replace function public.leaderboard_pricing_tier(p_model text, p_hour_start timestamptz)
+returns text
+language sql
+immutable
+as $fn$
+  select case
+    when not (
+      lower(coalesce(p_model, '')) like '%deepseek-v4.1-flash%'
+      or lower(coalesce(p_model, '')) like '%deepseek-flash%'
+      or lower(coalesce(p_model, '')) like '%deepseek-v4-flash%'
+      or lower(coalesce(p_model, '')) like '%deepseek-v4-pro%'
+    ) then 'peak'
+    when p_hour_start >= timestamptz '2026-08-22 16:00:00+00'
+      and extract(isodow from (p_hour_start + interval '8 hours')) in (6, 7)
+      then 'off_peak'
+    when (extract(hour from p_hour_start at time zone 'UTC') >= 1
+          and extract(hour from p_hour_start at time zone 'UTC') < 4)
+      or (extract(hour from p_hour_start at time zone 'UTC') >= 6
+          and extract(hour from p_hour_start at time zone 'UTC') < 10)
+      then 'peak'
+    else 'off_peak'
+  end;
+$fn$;
