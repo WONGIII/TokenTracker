@@ -29,7 +29,10 @@ Upstream is a finished product; this is my personal build of it. Everything belo
 | 🧩 **Several accounts per adapter** | The Limits page can track more than one login per provider, each with its own key and plan. See below. |
 | 💰 **Pinned model prices** | DeepSeek V4.1 Flash (and its aliases) are priced at the V4 Flash rates instead of $0, including the time-of-use discount. |
 | 📉 **Two cost bugs fixed** | The detail modal used to bill every DeepSeek token at the peak rate (~1.7× the dashboard headline) because it priced model aggregates instead of rows. |
-| 🚫 **No third-party telemetry** | Upstream's PostHog key was hardcoded, so every release build reported pageviews to the original author's account. Analytics is off unless a build injects its own key. |
+| 🐟 **DeepSeek Harness counted on its own** | Upstream folded `dsh` into "Other" — the leaderboard now gives it a column with its brand icon, and the profile modal lists it as its own provider. |
+| 🔄 **One-shot full upload on login** | After switching account or backend, the first sync sends the **entire** local queue in one go instead of crawling 1000 rows every 15 minutes; increments follow. |
+| 🖼️ **Avatar from an image URL** | No OAuth means no provider avatar, so you paste an image link in Settings and the header, sidebar and leaderboard all use it. |
+| 🧹 **Clear the local cache** | Settings → Account has a one-click clear for cached leaderboard periods, community stats and prefetched data; it reloads afterwards. |
 
 ---
 
@@ -87,13 +90,13 @@ Requires **Node.js ≥ 20**.
 
 ```bash
 git clone https://github.com/WONGIII/TokenTrackerZzH.git
-cd TokenTracker
+cd TokenTrackerZzH
 node bin/tracker.js            # installs hooks, syncs, opens the dashboard
 ```
 
-The dashboard is served locally at **http://localhost:17890**. The Windows tray app is built from `TokenTrackerWin/` — see [`MODIFICATIONS.md`](./MODIFICATIONS.md) for the build steps; it installs side by side with upstream's app (`%LOCALAPPDATA%\Programs\TokenTrackerZzH`).
+The dashboard is served locally at http://localhost:17890 . The Windows tray app is built from TokenTrackerWin/ — see MODIFICATIONS.md for the steps; it installs alongside the original (%LOCALAPPDATA%\Programs\TokenTrackerZzH).
 
-> **Not on npm.** `npx tokentracker-cli` installs *upstream's* package, not this build. Use the repository (or a release asset) instead.
+Not on npm. npx tokentracker-cli installs upstream's package, not this build. Use the repository (or a release asset) instead.
 
 ---
 

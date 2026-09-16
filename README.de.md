@@ -29,7 +29,10 @@ Das Original ist ein fertiges Produkt; dies ist mein persönlicher Build davon. 
 | 🧩 **Mehrere Konten pro Adapter** | Die Limits-Seite kann mehr als einen Login pro Anbieter verfolgen, jeweils mit eigenem Key und Tarif. |
 | 💰 **Ergänzte Modellpreise** | DeepSeek V4.1 Flash und seine Aliase werden zu den V4-Flash-Preisen berechnet statt mit $0 — inklusive Off-Peak-Rabatt. |
 | 📉 **Zwei Kostenfehler behoben** | Das Detail-Modal berechnete Modell-Aggregate statt Einzelzeilen und berechnete damit jeden DeepSeek-Token zum Peak-Preis (~1,7× der Headline). |
-| 🚫 **Keine Fremd-Telemetrie** | Das Original hat **seinen eigenen** PostHog-Key fest eingebaut; jeder Release meldete Seitenaufrufe an das Konto des Autors. Der Key ist jetzt leer, Analytics bleibt aus, sofern ein Build keinen eigenen injiziert. |
+| 🐟 **DeepSeek Harness separat gezählt** | Das Original schob `dsh` unter "Other". Die Rangliste hat jetzt eine eigene Spalte mit Marken-Icon, und das Profil-Fenster listet den Anbieter separat. |
+| 🔄 **Vollständiger Upload beim Login** | Nach einem Kontowechsel schickt die erste Synchronisierung die **gesamte** lokale Warteschlange auf einmal, statt alle 15 Minuten 1000 Zeilen; danach nur noch Deltas. |
+| 🖼️ **Avatar per Bild-URL** | Ohne OAuth gibt es keinen Anbieter-Avatar: In den Einstellungen fügst du einen Bildlink ein, den Kopfzeile, Seitenleiste und Rangliste gemeinsam nutzen. |
+| 🧹 **Lokalen Cache leeren** | Einstellungen → Konto hat einen Ein-Klick-Knopf für zwischengespeicherte Ranglisten-Zeiträume, Community-Statistiken und Vorablade-Daten; danach lädt die Seite neu. |
 
 ---
 
@@ -87,13 +90,13 @@ Erfordert **Node.js ≥ 20**.
 
 ```bash
 git clone https://github.com/WONGIII/TokenTrackerZzH.git
-cd TokenTracker
+cd TokenTrackerZzH
 node bin/tracker.js            # installiert Hooks, synchronisiert, öffnet das Dashboard
 ```
 
-Das Dashboard läuft lokal unter **http://localhost:17890**. Die Windows-Tray-App wird aus `TokenTrackerWin/` gebaut (Schritte in [`MODIFICATIONS.md`](./MODIFICATIONS.md)) und installiert **neben** der Original-App (`%LOCALAPPDATA%\Programs\TokenTrackerZzH`).
+Das Dashboard läuft lokal unter http://localhost:17890 . Die Windows-Tray-App wird aus TokenTrackerWin/ gebaut (Schritte in MODIFICATIONS.md); sie installiert sich neben dem Original (%LOCALAPPDATA%\Programs\TokenTrackerZzH).
 
-> **Nicht auf npm.** `npx tokentracker-cli` installiert das Paket des **Originals**, nicht diesen Build. Nutze das Repository oder ein Release-Asset.
+Nicht auf npm. npx tokentracker-cli installiert das Paket des Originals, nicht diesen Build. Nutze das Repository oder ein Release-Asset.
 
 ---
 

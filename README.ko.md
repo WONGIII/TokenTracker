@@ -29,7 +29,10 @@
 | 🧩 **어댑터당 여러 계정** | Limits 페이지에서 같은 프로바이더에 여러 로그인을 등록할 수 있고, 각자 자기 키와 플랜을 가집니다. |
 | 💰 **모델 가격 보강** | DeepSeek V4.1 Flash와 그 별칭들을 V4 Flash와 같은 요금으로 계산(원래는 $0). 비피크 반값도 적용. |
 | 📉 **비용 버그 2건 수정** | 상세 모달이 "모델 집계"에 대해 과금해서 DeepSeek 토큰이 전부 피크 요금(헤드라인의 약 1.7배)으로 계산되던 문제. |
-| 🚫 **서드파티 분석 없음** | 원본은 **자기들의** PostHog 키를 하드코딩해서 모든 릴리스의 페이지뷰가 원작자 계정으로 갔습니다. 키를 비웠고, 빌드 시 자기 키를 주입하지 않으면 아무것도 보내지 않습니다. |
+| 🐟 **DeepSeek Harness 별도 집계** | 원본은 `dsh`를 "Other"에 섞었습니다. 이제 리더보드에 전용 열(브랜드 아이콘 포함)이 생기고, 상세 모달의 provider 내역에서도 따로 표시됩니다. |
+| 🔄 **로그인 시 전체 업로드** | 계정이나 백엔드를 바꾼 뒤 첫 동기화는 로컬 큐 전체를 **한 번에** 보냅니다(15분마다 1000줄씩이 아니라). 이후에는 증분만 전송합니다. |
+| 🖼️ **아바타는 이미지 URL** | OAuth가 없으니 플랫폼 아바타도 없습니다. 설정에서 이미지 링크를 붙여 넣으면 헤더·사이드바·리더보드가 함께 사용합니다. |
+| 🧹 **로컬 캐시 삭제** | 설정 → 계정에 원클릭 삭제 버튼이 있습니다. 리더보드 기간·커뮤니티 통계 캐시를 지우고 자동으로 새로고침합니다. |
 
 ---
 
@@ -87,13 +90,13 @@
 
 ```bash
 git clone https://github.com/WONGIII/TokenTrackerZzH.git
-cd TokenTracker
+cd TokenTrackerZzH
 node bin/tracker.js            # 훅 설치, 동기화, 대시보드 열기
 ```
 
-대시보드는 **http://localhost:17890** 에서 제공됩니다. Windows 트레이 앱은 `TokenTrackerWin/`에서 빌드합니다(절차는 [`MODIFICATIONS.md`](./MODIFICATIONS.md)). 원본 앱과 **나란히** 설치됩니다(`%LOCALAPPDATA%\Programs\TokenTrackerZzH`).
+대시보드는 http://localhost:17890 에서 제공됩니다 . Windows 트레이 앱은 TokenTrackerWin/에서 빌드합니다(절차는 MODIFICATIONS.md). 원본 앱과 나란히 설치됩니다(%LOCALAPPDATA%\Programs\TokenTrackerZzH).
 
-> **npm에 올라가 있지 않습니다.** `npx tokentracker-cli`는 **원본 패키지**를 설치합니다. 저장소나 릴리스 첨부를 사용하세요.
+npm에 올라가 있지 않습니다. npx tokentracker-cli는 원본 패키지를 설치합니다. 저장소나 릴리스 첨부를 사용하세요.
 
 ---
 

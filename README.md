@@ -29,7 +29,10 @@
 | 🧩 **同一适配器多账号** | 限额页可以给同一个 provider 配多个登录，每个有自己的 key 和套餐。见下文。 |
 | 💰 **补齐模型价格** | DeepSeek V4.1 Flash 及其各种别名按 V4 Flash 的价格计费（原本是 $0），并且享受闲时半价。 |
 | 📉 **修掉两个成本 bug** | 详情弹窗原本按「模型聚合」计价，把每个 DeepSeek token 都按峰时价算，比外面显示的高约 1.7 倍。 |
-| 🚫 **没有第三方统计** | 上游把**他们自己的** PostHog key 写死在代码里，所有 release 的浏览数据都发到原作者账号。我把 key 置空，除非构建时注入自己的 key，否则完全不上报。 |
+| 🐟 **DeepSeek Harness 单独统计** | 上游把 `dsh` 混进 "Other" —— 排行榜单独给一列（带品牌图标），详情弹窗的 provider 分项也单列，不再和别的一起算。 |
+| 🔄 **登录即全量重传** | 换账号或换后端后，第一次同步会把整个本地队列**一次传完**（不是每 15 分钟传 1000 行慢慢爬），之后才走增量。 |
+| 🖼️ **头像用图片 URL** | 没有 OAuth 就没有平台头像，改成在设置里填一个图片链接，顶部、侧边栏、排行榜共用同一个。 |
+| 🧹 **可以清本地缓存** | 设置 → 账户里有一键清理：排行榜周期、社区统计这些缓存在本地的数据，清完自动重载。 |
 
 ---
 
@@ -87,13 +90,13 @@
 
 ```bash
 git clone https://github.com/WONGIII/TokenTrackerZzH.git
-cd TokenTracker
+cd TokenTrackerZzH
 node bin/tracker.js            # 安装 hook、同步数据、打开 Dashboard
 ```
 
-Dashboard 跑在本地 **http://localhost:17890**。Windows 托盘版从 `TokenTrackerWin/` 构建，步骤见 [`MODIFICATIONS.md`](./MODIFICATIONS.md)；它会和原版**并存安装**（`%LOCALAPPDATA%\Programs\TokenTrackerZzH`）。
+Dashboard 跑在本地 http://localhost:17890 。Windows 托盘版从 TokenTrackerWin/ 构建，步骤见 MODIFICATIONS.md；它会和原版并存安装（%LOCALAPPDATA%\Programs\TokenTrackerZzH）。
 
-> **没有发布到 npm。** `npx tokentracker-cli` 装的是**上游的包**，不是这个版本。请用仓库或 release 附件。
+没有发布到 npm。 npx tokentracker-cli 装的是上游的包，不是这个版本。请用仓库或 release 附件。
 
 ---
 
