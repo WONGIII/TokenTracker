@@ -3134,8 +3134,12 @@ async function cmdSync(argv, context = {}) {
         },
         config: {
           batchSize: 200,
-          maxBatchesSmall: 5,
-          maxBatchesLarge: 5,
+          // FORK: these were 5/5 — 1000 queue lines — so a device with more history
+          // than that needed several syncs to finish, which reads as "it never
+          // syncs everything". A routine sync stays modest; a real backlog drains
+          // in a single pass (the loop still stops at the end of the file).
+          maxBatchesSmall: 20,
+          maxBatchesLarge: 1000,
         },
       });
     }
@@ -3162,7 +3166,7 @@ async function cmdSync(argv, context = {}) {
             deviceToken,
             queuePath,
             queueStatePath,
-            maxBatches: opts.drain ? 100 : (autoUploadDecision?.maxBatches || 5),
+            maxBatches: opts.drain ? 1000 : (autoUploadDecision?.maxBatches || 500),
             batchSize: autoUploadDecision?.batchSize || 200,
           });
         try {
@@ -3180,6 +3184,37 @@ async function cmdSync(argv, context = {}) {
           if (!canFallbackWithoutSplittingHistory) throw error;
           successfulDeviceToken = fallbackDeviceToken;
           uploadResult = await drainWithToken(successfulDeviceToken);
+        }
+        // FORK: full resync when the writing identity changes.
+        //
+        // Logging in (or back in) re-issues the device token, and that token can
+        // belong to a different account than the one this queue was uploaded
+        // under. Uploading the rest of the history into that new account would
+        // split one device's history across two owners — which is exactly what
+        // happened once: a test login took over the relayed session and 6e9
+        // tokens were attributed to it. So the client remembers which account it
+        // last uploaded as, and on a change it resets the queue offset and sends
+        // the whole queue again. The cloud then holds exactly this device's data,
+        // under the account that is actually signed in.
+        const ingestUserId = typeof uploadResult?.userId === "string" ? uploadResult.userId : "";
+        if (ingestUserId) {
+          const stateNow = (await readJson(queueStatePath)) || {};
+          const knownUserId = typeof stateNow.syncedUserId === "string" ? stateNow.syncedUserId : "";
+          if (knownUserId !== ingestUserId) {
+            const hadUploaded = Number(stateNow.offset || 0) > 0;
+            // Write the marker BEFORE draining: the drain re-reads this file and
+            // writes it back with the advanced offset, so the marker survives.
+            await writeJson(queueStatePath, {
+              ...stateNow,
+              offset: hadUploaded ? 0 : Number(stateNow.offset || 0),
+              syncedUserId: ingestUserId,
+              updatedAt: new Date().toISOString(),
+            });
+            if (hadUploaded) {
+              const resync = await drainWithToken(successfulDeviceToken);
+              uploadResult = { ...resync, userId: ingestUserId };
+            }
+          }
         }
         // A successful ingest response proves which credential belongs to the
         // current backend. Only now commit the token and remove the retry marker.
@@ -3895,12 +3930,19 @@ const AUTO_RETRY_MAX_DELAY_MS = 2 * 60 * 60 * 1000;
 const INGEST_SLUG = "tokentracker-ingest";
 const MAX_INGEST_BUCKETS = 500;
 
-async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, queueStatePath, maxBatches = 5, batchSize = 200 }) {
+// FORK: the default was 5 batches — 1000 queue lines — so an install with more
+// history than that needed several syncs and looked like it never synced
+// everything. One call now drains the whole queue: the loop already stops when
+// the file is exhausted, so the cap only bounds a pathological queue.
+async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, queueStatePath, maxBatches = 500, batchSize = 200 }) {
   const state = (await readJson(queueStatePath)) || { offset: 0 };
   let offset = Number(state.offset || 0);
   let inserted = 0;
   let skipped = 0;
   let batches = 0;
+  // Which account this device token writes as, carried back by the ingest
+  // response; the caller compares it with the last one it saw.
+  let userId = typeof state.syncedUserId === "string" ? state.syncedUserId : "";
 
   const queueSize = await safeStatSize(queuePath);
   const limit = Math.min(Math.max(1, Math.floor(Number(batchSize || 200))), MAX_INGEST_BUCKETS);
@@ -3946,6 +3988,7 @@ async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, que
     inserted += Number(data?.inserted || 0);
     skipped += Number(data?.skipped || 0);
     batches += 1;
+    if (typeof data?.user_id === "string" && data.user_id) userId = data.user_id;
 
     offset = result.nextOffset;
     state.offset = offset;
@@ -3953,7 +3996,7 @@ async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, que
     await writeJson(queueStatePath, state);
   }
 
-  return { inserted, skipped, batches };
+  return { inserted, skipped, batches, userId };
 }
 
 async function readQueueBatch(queuePath, startOffset, maxBuckets) {

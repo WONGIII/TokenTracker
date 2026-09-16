@@ -240,5 +240,11 @@ export default async function (req: Request): Promise<Response> {
     if (stateErr) return json({ error: stateErr.message }, 500);
   }
 
-  return json({ ok: true, inserted: rows.length, skipped: 0 });
+  // The client needs to know WHICH account this device token writes as. A token
+  // re-issued after a re-login can belong to a different user, and a client that
+  // keeps assuming the old identity files fresh history under the wrong account
+  // (this happened: a test login hijacked the relayed session and 6e9 tokens were
+  // attributed to it). Returning the id lets the client notice and re-send its
+  // whole queue under the correct owner.
+  return json({ ok: true, inserted: rows.length, skipped: 0, user_id: userId });
 }
