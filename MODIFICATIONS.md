@@ -59,4 +59,25 @@ Changes relative to upstream, all on top of upstream commit `5be67a4f3d8ec34fc32
    parity assertions while a new test pins zzh's v2 geometry; no macOS sprite ships for
    zzh because this fork only builds Windows/web.
 
+7. **The Windows installer no longer collides with upstream** —
+   `TokenTrackerWin/installer/TokenTracker.iss` gets a **new `AppId` GUID** (Inno treats a
+   matching AppId as the same product and therefore forces an in-place upgrade over an
+   existing upstream install, hiding the folder page in the process), a distinct
+   `DefaultDirName` (`%LOCALAPPDATA%\Programs\TokenTrackerZzH`), `DisableDirPage=no` so the
+   folder is always choosable, and its own display name `TokenTracker ZzH` for the
+   Add/Remove Programs entry and the Start Menu / desktop shortcuts. `Constants.cs`
+   `StartupRegistryValueName` moves to `TokenTrackerZzH` so the HKCU Run entry for
+   launch-at-startup is not shared with an upstream install either.
+
+8. **OAuth removed from the login UI** — `dashboard/src/components/LoginCard.jsx` drops
+   the provider buttons, the `GOOGLE_ICON`/`GITHUB_ICON` artwork, `PROVIDER_ICONS` /
+   `PROVIDER_LABELS` / `providerLabel`, the `signInWithOAuth` call, the
+   `?native=1&provider=…` auto-trigger effect and the "continue with email" interstitial,
+   leaving email + password as the only flow. `getPublicAuthConfig()` is still called, but
+   only for `passwordMinLength`; its old fallback that invented a
+   `["google","github"]` provider list when the config call failed is gone. The
+   self-hosted InsForge this fork talks to has every provider slot empty, so
+   `oAuthProviders` would have been empty anyway — and the fallback would have offered
+   buttons that could not work.
+
 Sizes, endpoints and behaviours not listed above are unchanged from upstream.

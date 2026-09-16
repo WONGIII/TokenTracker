@@ -20,15 +20,25 @@
   #define MyAppVersion "0.0.0"
 #endif
 
-#define MyAppName "TokenTracker"
+#define MyAppName "TokenTracker ZzH"
 #define MyAppPublisher "TokenTracker"
-#define MyAppURL "https://www.tokentracker.cc"
+#define MyAppURL "https://github.com/WONGIII/TokenTracker"
+; Folder name without spaces. Deliberately different from upstream's
+; "TokenTracker" so this build installs side by side with an existing
+; upstream install instead of replacing it.
+#define MyAppDirName "TokenTrackerZzH"
 #define MyAppExeName "TokenTracker.exe"
 
 [Setup]
 ; Stable per-product GUID — keep constant so upgrades replace in place and
 ; uninstall stays a single Add/Remove Programs entry.
-AppId={{8F2A6C71-4E9D-4B7A-9C3E-1D5F0A2B6E84}
+;
+; FORK: this is a NEW GUID, not upstream's {{8F2A6C71-4E9D-4B7A-9C3E-1D5F0A2B6E84}.
+; Inno treats a matching AppId as "the same product", which forces an in-place
+; upgrade, hides the directory page and overwrites the upstream install. A
+; distinct AppId makes this a separate product with its own Add/Remove Programs
+; entry, its own folder and its own shortcuts.
+AppId={{B7EF3E1B-A56C-4EF1-AFAC-561F5A00C71C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -36,7 +46,10 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 ; Per-user install: no admin rights, lands in %LOCALAPPDATA%\Programs.
 PrivilegesRequired=lowest
-DefaultDirName={localappdata}\Programs\{#MyAppName}
+DefaultDirName={localappdata}\Programs\{#MyAppDirName}
+; Always show the folder page, including on upgrade. The Inno default is
+; "auto", which hides it whenever a previous version of THIS product is found.
+DisableDirPage=no
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}

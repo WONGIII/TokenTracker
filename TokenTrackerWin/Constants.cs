@@ -21,5 +21,8 @@ internal static class Constants
     public const string GitHubUrl = "https://github.com/WONGIII/TokenTracker";
 
     /// <summary>HKCU Run-key value name used for launch-at-startup.</summary>
-    public const string StartupRegistryValueName = "TokenTracker";
+    // FORK: distinct from upstream's "TokenTracker" so this build's
+    // launch-at-startup entry cannot be overwritten by, or deleted together
+    // with, an upstream install sharing the same HKCU Run key.
+    public const string StartupRegistryValueName = "TokenTrackerZzH";
 }
