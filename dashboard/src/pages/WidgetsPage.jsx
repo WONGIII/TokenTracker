@@ -586,7 +586,7 @@ function HeaderCta() {
   if (platform === "mac-web") {
     return (
       <a
-        href="https://github.com/xiufengsun/TokenTracker/releases/latest"
+        href="https://github.com/WONGIII/TokenTracker/releases/latest"
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex h-10 items-center gap-2 rounded-lg bg-oai-black px-4 text-sm font-medium text-white no-underline transition-colors hover:bg-oai-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-oai-brand-500 focus-visible:ring-offset-2 dark:bg-white dark:text-oai-black dark:hover:bg-oai-gray-200"

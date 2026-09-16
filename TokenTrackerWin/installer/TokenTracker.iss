@@ -2,7 +2,7 @@
 ; TokenTracker.iss — Inno Setup script for the Windows tray app.
 ;
 ; Builds a per-user installer (no admin / UAC) that matches the app's own
-; design: tokentracker:// protocol and launch-at-startup are registered by
+; design: ttzzh:// protocol and launch-at-startup are registered by
 ; the app at runtime under HKCU, so the installer only lays down files +
 ; shortcuts and never touches machine-wide state.
 ;

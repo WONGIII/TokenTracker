@@ -793,9 +793,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
     }
 
     /// <summary>
-    /// Handle a <c>tokentracker://</c> deep link (forwarded from a second launch, or a
+    /// Handle a <c>ttzzh://</c> deep link (forwarded from a second launch, or a
     /// cold start argument). Currently only the OAuth callback
-    /// <c>tokentracker://auth/callback?insforge_code=…</c> is used; the code is routed
+    /// <c>ttzzh://auth/callback?insforge_code=…</c> is used; the code is routed
     /// into the dashboard WebView to finish the InsForge session exchange. Mirrors the
     /// macOS <c>application(_:open:)</c> → <c>handleAuthCallback</c> path.
     /// </summary>

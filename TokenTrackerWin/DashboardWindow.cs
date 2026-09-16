@@ -427,7 +427,7 @@ internal sealed class DashboardWindow : Window
             // saved Google/GitHub sessions, and where Google permits OAuth — embedded
             // webviews are blocked). The browser redirects back to the whitelisted
             // 127.0.0.1:17680/auth/callback, whose page deep-links the code to us via the
-            // tokentracker:// scheme. Mirrors the macOS nativeOAuth handler.
+            // ttzzh:// scheme. Mirrors the macOS nativeOAuth handler.
             if (msg.Length > 0 && msg[0] == '{')
             {
                 try

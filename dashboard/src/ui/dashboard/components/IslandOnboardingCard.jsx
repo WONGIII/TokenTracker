@@ -136,7 +136,7 @@ export function IslandOnboardingCard({ enterDelay = 0 }) {
     if (!available) {
       // Browser preview: no bridge to flip — hand off to the Mac app.
       try {
-        window.location.href = "tokentracker://open";
+        window.location.href = "ttzzh://open";
       } catch {
         /* ignore */
       }

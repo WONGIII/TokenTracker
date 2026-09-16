@@ -275,7 +275,7 @@ function renderWelcome() {
       DIVIDER,
       "",
       `  Tracks: ${providerLine}`,
-      `  Dashboard: http://localhost:7680`,
+      `  Dashboard: http://localhost:17890`,
       "",
     ].join("\n"),
   );
@@ -299,7 +299,7 @@ function renderLocalSuccess({ firstSync } = {}) {
 
   lines.push(
     "",
-    `  Dashboard: ${CYAN}http://localhost:7680${RESET}`,
+    `  Dashboard: ${CYAN}http://localhost:17890${RESET}`,
     "",
   );
   process.stdout.write(lines.join("\n"));

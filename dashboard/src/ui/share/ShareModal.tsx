@@ -211,7 +211,7 @@ export function ShareModal({ open, onClose, data, twitterText }: any) {
     // Without `url` the X intent only carries the pasted image.
     const shareUserId = (insforge?.user as any)?.id;
     const sharePath = typeof shareUserId === "string" && shareUserId ? `/u/${shareUserId}` : "/";
-    intentUrl.searchParams.set("url", `https://www.tokentracker.cc${sharePath}?ref=share`);
+    intentUrl.searchParams.set("url", `https://tt.977744.xyz${sharePath}?ref=share`);
     // Use location.href in native embed so WKUIDelegate.createWebView
     // (which intercepts window.open and opens in system browser) fires.
     // window.open with _blank sometimes navigates the WKWebView itself.

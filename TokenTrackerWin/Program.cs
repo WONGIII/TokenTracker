@@ -10,7 +10,7 @@ internal static class Program
     {
         InstallExceptionGuards();
 
-        // Windows launches us with the full tokentracker://… URL as an argument when a
+        // Windows launches us with the full ttzzh://… URL as an argument when a
         // deep link fires (OAuth callback). Extract it if present.
         var deepLink = FindDeepLink(args);
         var launchedAtStartup = args.Any(a =>
@@ -31,7 +31,7 @@ internal static class Program
             return;
         }
 
-        // Primary instance: make tokentracker:// point at this exe so the OAuth callback
+        // Primary instance: make ttzzh:// point at this exe so the OAuth callback
         // (in the system browser) can deep-link the code back to us.
         UrlProtocol.EnsureRegistered();
 

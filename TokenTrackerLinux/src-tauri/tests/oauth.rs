@@ -8,7 +8,7 @@ use tokentracker_linux::oauth::{
 #[test]
 fn parses_only_the_expected_auth_callback() {
     assert_eq!(
-        parse_auth_callback("tokentracker://auth/callback?insforge_code=abc%2F123"),
+        parse_auth_callback("ttzzh://auth/callback?insforge_code=abc%2F123"),
         Some("abc/123".to_string())
     );
 
@@ -18,26 +18,26 @@ fn parses_only_the_expected_auth_callback() {
         "http://auth/callback?insforge_code=abc",
         "tokentracker2://auth/callback?insforge_code=abc",
         // Wrong host.
-        "tokentracker://open/callback?insforge_code=abc",
-        "tokentracker://Auth.evil.com/callback?insforge_code=abc",
+        "ttzzh://open/callback?insforge_code=abc",
+        "ttzzh://Auth.evil.com/callback?insforge_code=abc",
         // Wrong path.
-        "tokentracker://auth/done?insforge_code=abc",
-        "tokentracker://auth/callback/extra?insforge_code=abc",
-        "tokentracker://auth/?insforge_code=abc",
+        "ttzzh://auth/done?insforge_code=abc",
+        "ttzzh://auth/callback/extra?insforge_code=abc",
+        "ttzzh://auth/?insforge_code=abc",
         // Missing or empty code.
-        "tokentracker://auth/callback",
-        "tokentracker://auth/callback?insforge_code=",
-        "tokentracker://auth/callback?other=abc",
+        "ttzzh://auth/callback",
+        "ttzzh://auth/callback?insforge_code=",
+        "ttzzh://auth/callback?other=abc",
         // Ambiguous: refuse rather than guess which code is authoritative.
-        "tokentracker://auth/callback?insforge_code=one&insforge_code=two",
-        "tokentracker://auth/callback?insforge_code=one&other=x&insforge_code=two",
+        "ttzzh://auth/callback?insforge_code=one&insforge_code=two",
+        "ttzzh://auth/callback?insforge_code=one&other=x&insforge_code=two",
         // A fragment can hide a second value from `query_pairs`.
-        "tokentracker://auth/callback#insforge_code=abc",
-        "tokentracker://auth/callback?insforge_code=abc#extra",
+        "ttzzh://auth/callback#insforge_code=abc",
+        "ttzzh://auth/callback?insforge_code=abc#extra",
         // Not a URL at all.
         "",
         "not a url",
-        "tokentracker://",
+        "ttzzh://",
     ] {
         assert_eq!(parse_auth_callback(invalid), None, "accepted {invalid}");
     }

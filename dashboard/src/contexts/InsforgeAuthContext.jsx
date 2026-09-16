@@ -133,7 +133,7 @@ export function InsforgeAuthProvider({ children }) {
         // Native desktop app (macOS WKWebView / Windows WebView2): open the system
         // browser for OAuth. PKCE must be initialized in the same context that handles
         // the callback. The callback MUST land on /auth/callback — only that page relays
-        // the code back into the app via the tokentracker:// URL scheme.
+        // the code back into the app via the ttzzh:// URL scheme.
         //
         // On Windows the nativeOAuth shim can be injected AFTER LoginModal computed its
         // (root "/") override, which would send the browser to "/" with no callback

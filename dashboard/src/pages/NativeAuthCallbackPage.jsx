@@ -15,7 +15,7 @@ import { postNativeMessage } from "../lib/native-bridge.js";
  * Native flow:
  *   1. Capture insforge_code from URL before SDK strips it
  *   2. Check /api/auth-bridge/verifier for native flag
- *   3. If native: redirect to tokentracker://auth/callback?insforge_code=xxx
+ *   3. If native: redirect to ttzzh://auth/callback?insforge_code=xxx
  *      App receives code, loads /auth/callback in WebView, SDK exchanges it
  *
  * Web flow:
@@ -81,7 +81,7 @@ export function NativeAuthCallbackPage() {
 
     setStatus("redirecting");
     const timer = setTimeout(() => {
-      window.location.href = `tokentracker://auth/callback?insforge_code=${encodeURIComponent(_capturedCode)}`;
+      window.location.href = `ttzzh://auth/callback?insforge_code=${encodeURIComponent(_capturedCode)}`;
     }, 200);
     return () => clearTimeout(timer);
   }, [isNative]);

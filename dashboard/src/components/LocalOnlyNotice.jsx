@@ -2,21 +2,21 @@ import React from "react";
 import { Download, ArrowUpRight } from "lucide-react";
 import { copy } from "../lib/copy";
 
-const RELEASES_URL = "https://github.com/xiufengsun/TokenTracker/releases/latest";
+const RELEASES_URL = "https://github.com/WONGIII/TokenTracker/releases/latest";
 
 /**
  * Empty state for local-first pages (Limits, Skills) when viewed on the
  * deployed web app, where there's no local CLI to read the user's machine.
- * Offers a best-effort "open in Mac app" (tokentracker:// scheme) and a
+ * Offers a best-effort "open in Mac app" (ttzzh:// scheme) and a
  * download link, instead of showing a blank page.
  */
 export function LocalOnlyNotice() {
   const openInApp = () => {
-    // The Mac app registers the tokentracker:// scheme; this activates it when
+    // The Mac app registers the ttzzh:// scheme; this activates it when
     // installed. No-ops (or shows an OS prompt) when the app isn't present —
     // the download link below is the fallback.
     try {
-      window.location.href = "tokentracker://open";
+      window.location.href = "ttzzh://open";
     } catch {
       /* ignore */
     }

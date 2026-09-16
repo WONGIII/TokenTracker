@@ -107,7 +107,7 @@ test("serve respects explicit port from --port and PORT env", (t) => {
     sync: false,
   });
   assert.deepEqual(parseArgs([], {}), {
-    port: 7680,
+    port: 17890,
     portExplicit: false,
     wslDefaultPort: false,
     open: true,
@@ -118,14 +118,14 @@ test("serve respects explicit port from --port and PORT env", (t) => {
 // #267: Windows Delivery Optimization (DoSvc) holds 0.0.0.0:7680 on the host,
 // so under WSL the default port must move off 7680. Explicit --port / PORT
 // always win.
-test("serve default port moves to 7681 under WSL", (t) => {
+test("serve default port moves to 17891 under WSL", (t) => {
   mockPlatform(t, "linux");
   const wslEnv = { WSL_DISTRO_NAME: "Ubuntu" };
 
-  assert.equal(resolveDefaultPort(wslEnv), 7681);
+  assert.equal(resolveDefaultPort(wslEnv), 17891);
 
   const opts = parseArgs([], wslEnv);
-  assert.equal(opts.port, 7681);
+  assert.equal(opts.port, 17891);
   assert.equal(opts.portExplicit, false);
   assert.equal(opts.wslDefaultPort, true, "flags the WSL port shift for the startup notice");
 
@@ -157,13 +157,13 @@ test("isRunningUnderWsl detection matrix", (t) => {
     false,
     "unreadable /proc/version fails safe",
   );
-  assert.equal(resolveDefaultPort({}, () => "Linux version 6.1.0-generic"), 7680);
+  assert.equal(resolveDefaultPort({}, () => "Linux version 6.1.0-generic"), 17890);
 });
 
 test("isRunningUnderWsl is false off Linux regardless of env", (t) => {
   mockPlatform(t, "darwin");
   assert.equal(isRunningUnderWsl({ WSL_DISTRO_NAME: "Ubuntu" }), false);
-  assert.equal(resolveDefaultPort({ WSL_DISTRO_NAME: "Ubuntu" }), 7680);
+  assert.equal(resolveDefaultPort({ WSL_DISTRO_NAME: "Ubuntu" }), 17890);
 });
 
 test("serve-command parsing survives ps output quirks", () => {

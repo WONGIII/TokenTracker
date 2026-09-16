@@ -74,7 +74,7 @@ function printHelp() {
       "Usage:",
       "  npx tokentracker                                         Open local dashboard",
       "  npx tokentracker -v, --version                           Show version info",
-      "  npx tokentracker [--debug] serve [--port 7680] [--no-open] [--no-sync]",
+      "  npx tokentracker [--debug] serve [--port 17890] [--no-open] [--no-sync]",
       "  npx tokentracker [--debug] init [--yes] [--dry-run] [--no-open] [--link-code <code>]",
       "  npx tokentracker [--debug] sync [--auto] [--drain] [--from-openclaw]",
       "  npx tokentracker [--debug] status [--probe-keychain] [--probe-keychain-details]",

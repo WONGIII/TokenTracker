@@ -7,7 +7,7 @@ namespace TokenTrackerWin;
 /// Best-effort cleanup for the system-browser OAuth callback tab.
 ///
 /// Browsers normally refuse `window.close()` for tabs they did not open by script,
-/// so the native app closes the callback tab after it receives the tokentracker://
+/// so the native app closes the callback tab after it receives the ttzzh://
 /// deep link. The implementation only closes a tab whose address bar is exactly on
 /// this app's local /auth/callback route.
 /// </summary>

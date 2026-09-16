@@ -27,6 +27,7 @@ describe("pets api catalog", () => {
       "clawd",
       "bot",
       "sprout",
+      "zzh",
       "community-pet",
     ]);
   });

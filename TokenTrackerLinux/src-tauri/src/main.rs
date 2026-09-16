@@ -130,7 +130,7 @@ fn start_dashboard(app: AppHandle, window: WebviewWindow) {
             eprintln!("[TokenTracker] failed to open the dashboard: {error}");
             return;
         }
-        // A `tokentracker://` callback may have arrived before the server was
+        // A `ttzzh://` callback may have arrived before the server was
         // ready, in which case it was parked as a pending code.
         oauth::deliver_pending_callback(&navigate_app);
     });

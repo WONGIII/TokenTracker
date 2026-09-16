@@ -57,9 +57,9 @@ targets:
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleURLTypes:
-          - CFBundleURLName: com.tokentracker.bar.auth
+          - CFBundleURLName: com.wongiii.zzh.auth
             CFBundleURLSchemes:
-              - tokentracker
+              - ttzzh
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
           NSAllowsArbitraryLoads: true

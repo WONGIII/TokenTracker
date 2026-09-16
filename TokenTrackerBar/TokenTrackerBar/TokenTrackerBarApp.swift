@@ -235,7 +235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if url.host == "auth" && url.path.hasPrefix("/done") {
                 DashboardWindowController.shared.handleAuthDone()
             } else if url.host == "auth" && url.path.hasPrefix("/callback") {
-                // Browser relays OAuth code back via tokentracker://auth/callback?insforge_code=xxx
+                // Browser relays OAuth code back via ttzzh://auth/callback?insforge_code=xxx
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                 let code = components?.queryItems?.first(where: { $0.name == "insforge_code" })?.value
                 if let code {
@@ -243,7 +243,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             } else if url.host == "open" || url.host == "dashboard" {
                 // The web app's local-only pages (Limits / Skills on
-                // tokentracker.cc) deep-link here via tokentracker://open to
+                // tokentracker.cc) deep-link here via ttzzh://open to
                 // surface the local dashboard window.
                 DashboardPresentationCoordinator.shared.showDashboard()
             }

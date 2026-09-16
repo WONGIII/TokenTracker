@@ -6,7 +6,7 @@ namespace TokenTrackerWin;
 /// <summary>
 /// Single-instance deep-link forwarding. The first launch owns a named pipe and listens
 /// for messages; a second launch (e.g. Windows starting the app to handle a
-/// <c>tokentracker://</c> deep link) connects, forwards its argument, and exits. This
+/// <c>ttzzh://</c> deep link) connects, forwards its argument, and exits. This
 /// lets the OAuth callback reach the already-running tray instance — the Windows
 /// analogue of macOS <c>application(_:open:)</c>.
 /// </summary>

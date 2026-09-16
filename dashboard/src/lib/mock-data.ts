@@ -793,7 +793,7 @@ export function getMockLeaderboard({
       other_tokens: String(entry.other_tokens ?? 0),
       total_tokens: String(entry.total_tokens),
       is_public: Boolean(entry.is_public),
-      github_url: entry.id % 3 === 0 ? "https://github.com/xiufengsun/TokenTracker" : null,
+      github_url: entry.id % 3 === 0 ? "https://github.com/WONGIII/TokenTracker" : null,
       badges: mockCompactBadges(entry.id),
       badge_count: mockCompactBadges(entry.id).length,
     }));

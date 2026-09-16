@@ -567,7 +567,7 @@ final class DashboardWindowController: NSObject, NSWindowDelegate, WKNavigationD
         }
     }
 
-    /// Called when `tokentracker://auth/done` deep link is received after browser login.
+    /// Called when `ttzzh://auth/done` deep link is received after browser login.
     func handleAuthDone() {
         DashboardPresentationCoordinator.shared.showDashboard()
         // Reload dashboard so InsForge SDK picks up session from server-side cookie relay
@@ -576,7 +576,7 @@ final class DashboardWindowController: NSObject, NSWindowDelegate, WKNavigationD
         }
     }
 
-    /// Called when browser relays OAuth code back via `tokentracker://auth/callback?insforge_code=xxx`.
+    /// Called when browser relays OAuth code back via `ttzzh://auth/callback?insforge_code=xxx`.
     /// Loads the callback page in the WebView so the SDK can exchange the code using the
     /// PKCE verifier that's already in WebView's sessionStorage.
     func handleAuthCallback(code: String) {

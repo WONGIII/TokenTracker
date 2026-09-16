@@ -11,14 +11,16 @@ const { serveStaticFile } = require("../lib/static-server");
 const { openInBrowser } = require("../lib/browser-auth");
 const { maybeShowStarCta } = require("../lib/star-cta");
 
-const DEFAULT_PORT = 7680;
+// FORK: 7680 is upstream's default, so running both builds side by side would
+// fight over the port (and on Windows it is DoSvc anyway).
+const DEFAULT_PORT = 17890;
 // Windows Delivery Optimization (DoSvc) listens on 0.0.0.0:7680 on virtually
 // every Windows host. Under WSL2 NAT networking the in-WSL bind succeeds (the
 // conflict lives on the Windows side of the loopback), but the Windows
 // browser reaches DoSvc instead of the dashboard, which accepts the TCP
 // connection and drops the HTTP request (#267). The in-WSL "port busy → try
 // next" fallback can't see this, so WSL starts one port up by default.
-const WSL_DEFAULT_PORT = 7681;
+const WSL_DEFAULT_PORT = 17891;
 const DEFAULT_MAX_PORT_ATTEMPTS = 20;
 const NPM_PACKAGE_NAME = "tokentracker-cli";
 const LOCAL_BIND_HOST = "127.0.0.1";
@@ -176,7 +178,7 @@ async function cmdServe(argv) {
   // available port; an explicit --port/PORT remains strict.
   if (opts.wslDefaultPort) {
     process.stdout.write(
-      `Running under WSL: using port ${opts.port} (7680 is held by the Windows Delivery Optimization service on the host — see issue #267). Pass --port to override.\n`,
+      `Running under WSL: using port ${opts.port} (the usual port is held by the Windows Delivery Optimization service on the host — see issue #267). Pass --port to override.\n`,
     );
   }
   let port;
