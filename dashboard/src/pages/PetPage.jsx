@@ -33,6 +33,7 @@ const CHARACTER_TINTS = {
   sprout: "from-oai-brand-100 dark:from-emerald-950/70",
   byte: "from-oai-gray-200 dark:from-slate-800/70",
   ember: "from-orange-100 dark:from-orange-950/80",
+  zzh: "from-pink-100 dark:from-pink-950/70",
 };
 
 /** Renders localized copy with the literal "codex-pets.net" turned into a link. */
@@ -178,7 +179,7 @@ function PetStage({ pet, state, onStateChange, botColor, onBotColorChange }) {
   const stateLabel = copy(stateSpec?.labelKey || "pet.state.calm");
   return (
     <section
-      className="relative flex min-h-[400px] flex-col overflow-hidden bg-oai-gray-50 dark:bg-oai-gray-950 sm:min-h-[440px] lg:min-h-[480px]"
+      className="relative flex min-h-[400px] flex-col overflow-hidden bg-pink-100 dark:bg-pink-950/50 sm:min-h-[440px] lg:min-h-[480px]"
       onPointerMove={(event) => {
         // V2 pets track the pointer across the whole stage (mirroring the desktop
         // pet watching the cursor across the screen), not just over the sprite.
@@ -220,7 +221,7 @@ function PetStage({ pet, state, onStateChange, botColor, onBotColorChange }) {
           <div className="origin-bottom lg:scale-[1.18]">
             <ClawdAnimated
               state={state}
-              character={pet?.id || "clawd"}
+              character={pet?.id || "zzh"}
               pet={pet}
               size={190}
               lookDirectionIndex={lookDirectionIndex}
@@ -359,7 +360,7 @@ export function PetPage() {
   // Auto-cycle the preview until the user picks a state themselves — a manual
   // choice must stick, so the first click stops the rotation for this visit.
   const [autoRotate, setAutoRotate] = useState(true);
-  const selectedCharacter = settings.character || "clawd";
+  const selectedCharacter = settings.character || "zzh";
   const nativeSettings = useNativeSettings();
   const menuBarPetActive = nativeSettings.settings?.menuBarIconStyle === "pet";
   const selectedPet = pets.find((pet) => pet.id === selectedCharacter) || pets[0];
@@ -372,7 +373,7 @@ export function PetPage() {
 
   useEffect(() => {
     if (!catalogLoading && pets.length > 0 && !pets.some((pet) => pet.id === selectedCharacter)) {
-      setSetting("character", "clawd");
+      setSetting("character", "zzh");
     }
   }, [catalogLoading, pets, selectedCharacter, setSetting]);
 
@@ -486,7 +487,7 @@ export function PetPage() {
                         onRemove={catalogAvailable && character.id !== "clawd" && character.id !== "bot"
                           ? () => runImport(async () => {
                             await removePet(character.id);
-                            if (selectedCharacter === character.id) setSetting("character", "clawd");
+                            if (selectedCharacter === character.id) setSetting("character", "zzh");
                             return null;
                           }, copy("pet.import.removed"))
                           : undefined}

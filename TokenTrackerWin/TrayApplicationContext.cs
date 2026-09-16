@@ -38,6 +38,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly ToolStripMenuItem _petCharacterSprout;
     private readonly ToolStripMenuItem _petCharacterByte;
     private readonly ToolStripMenuItem _petCharacterEmber;
+    private readonly ToolStripMenuItem _petCharacterZzh;
     private readonly ToolStripMenuItem _petCharacterBot;
     private readonly ToolStripMenuItem _startupItem;
     private readonly ToolStripMenuItem _checkUpdatesItem;
@@ -56,6 +57,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly ToolStripMenuItem _petCtxCharacterSprout;
     private readonly ToolStripMenuItem _petCtxCharacterByte;
     private readonly ToolStripMenuItem _petCtxCharacterEmber;
+    private readonly ToolStripMenuItem _petCtxCharacterZzh;
     private readonly ToolStripMenuItem _petCtxCharacterBot;
     private readonly ToolStripMenuItem _petCtxClose;
     private readonly ToolStripMenuItem _starItem;
@@ -118,9 +120,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _petCharacterSprout = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterSprout));
         _petCharacterByte = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterByte));
         _petCharacterEmber = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterEmber));
+        _petCharacterZzh = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterZzh));
         _petCharacterItem = CreateMenuItem("", (_, _) => { });
         _petCharacterItem.DropDownItems.AddRange([
-            _petCharacterClawd, _petCharacterBot, _petCharacterSprout, _petCharacterByte, _petCharacterEmber]);
+            _petCharacterClawd, _petCharacterBot, _petCharacterSprout, _petCharacterByte, _petCharacterEmber,
+            _petCharacterZzh]);
         StyleSubmenu(_petCharacterItem.DropDown);
 
         // Pet right-click context menu: open/close dashboard / size / close pet.
@@ -139,9 +143,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _petCtxCharacterSprout = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterSprout));
         _petCtxCharacterByte = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterByte));
         _petCtxCharacterEmber = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterEmber));
+        _petCtxCharacterZzh = CreateMenuItem("", (_, _) => SetPetCharacter(PetWindow.CharacterZzh));
         _petCtxCharacterItem = CreateMenuItem("", (_, _) => { });
         _petCtxCharacterItem.DropDownItems.AddRange([
-            _petCtxCharacterClawd, _petCtxCharacterBot, _petCtxCharacterSprout, _petCtxCharacterByte, _petCtxCharacterEmber]);
+            _petCtxCharacterClawd, _petCtxCharacterBot, _petCtxCharacterSprout, _petCtxCharacterByte, _petCtxCharacterEmber,
+            _petCtxCharacterZzh]);
         _petCtxClose = CreateMenuItem("", (_, _) => ClosePet());
         _petMenu = new ContextMenuStrip
         {
@@ -345,6 +351,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _petCharacterSprout.Text = _strings.CharacterSprout;
         _petCharacterByte.Text = _strings.CharacterByte;
         _petCharacterEmber.Text = _strings.CharacterEmber;
+        _petCharacterZzh.Text = _strings.CharacterZzh;
         _petCharacterBot.Text = _strings.CharacterBot;
         // Pet right-click context menu.
         _petMenu.Font = _menuFont;
@@ -359,6 +366,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _petCtxCharacterSprout.Text = _strings.CharacterSprout;
         _petCtxCharacterByte.Text = _strings.CharacterByte;
         _petCtxCharacterEmber.Text = _strings.CharacterEmber;
+        _petCtxCharacterZzh.Text = _strings.CharacterZzh;
         _petCtxCharacterBot.Text = _strings.CharacterBot;
         _petCtxClose.Text = _strings.ClosePet;
         UpdatePetSizeChecks();
@@ -513,11 +521,13 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _petCharacterSprout.Checked = selected == PetWindow.CharacterSprout;
         _petCharacterByte.Checked = selected == PetWindow.CharacterByte;
         _petCharacterEmber.Checked = selected == PetWindow.CharacterEmber;
+        _petCharacterZzh.Checked = selected == PetWindow.CharacterZzh;
         _petCharacterBot.Checked = selected == PetWindow.CharacterBot;
         _petCtxCharacterClawd.Checked = selected == PetWindow.CharacterClawd;
         _petCtxCharacterSprout.Checked = selected == PetWindow.CharacterSprout;
         _petCtxCharacterByte.Checked = selected == PetWindow.CharacterByte;
         _petCtxCharacterEmber.Checked = selected == PetWindow.CharacterEmber;
+        _petCtxCharacterZzh.Checked = selected == PetWindow.CharacterZzh;
         _petCtxCharacterBot.Checked = selected == PetWindow.CharacterBot;
         foreach (ToolStripItem item in _petCharacterItem.DropDownItems)
         {
@@ -545,7 +555,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
             foreach (var directory in Directory.EnumerateDirectories(sourceRoot))
             {
                 var id = Path.GetFileName(directory).ToLowerInvariant();
-                if (seen.Contains(id) || PetWindow.NormalizeCharacter(id) != id || id is PetWindow.CharacterClawd or PetWindow.CharacterBot or PetWindow.CharacterSprout or PetWindow.CharacterByte or PetWindow.CharacterEmber) continue;
+                if (seen.Contains(id) || PetWindow.NormalizeCharacter(id) != id || id is PetWindow.CharacterClawd or PetWindow.CharacterBot or PetWindow.CharacterSprout or PetWindow.CharacterByte or PetWindow.CharacterEmber or PetWindow.CharacterZzh) continue;
                 var manifestPath = Path.Combine(directory, "pet.json");
                 var spritesheetPath = Path.Combine(directory, "spritesheet.webp");
                 if (!File.Exists(manifestPath) || !File.Exists(spritesheetPath)) continue;
@@ -688,7 +698,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 SetPetSize(value ?? PetWindow.SizeMedium);
                 break;
             case "character":
-                SetPetCharacter(value ?? PetWindow.CharacterClawd);
+                SetPetCharacter(value ?? PetWindow.CharacterZzh);
                 break;
             case "botColor":
                 SetPetBotColor(value ?? "auto");

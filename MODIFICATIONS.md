@@ -30,4 +30,33 @@ Changes relative to upstream, all on top of upstream commit `5be67a4f3d8ec34fc32
    same range. It now prices each row (mirroring `aggregateByDay()` and the cloud
    `account-model-breakdown` edge, which were already correct).
 
+5. **Update checks and release links point at this fork** — `TokenTrackerWin/UpdateChecker.cs`
+   (repo slug), `TokenTrackerWin/Constants.cs`, `TokenTrackerBar/.../UpdateChecker.swift`
+   (repo + release URL), the macOS GitHub links in `DynamicIslandView.swift` /
+   `NativeBridge.swift` / `StatusBarController.swift`, `dashboard/src/lib/config.ts`
+   (`REPO_URL`, plus the `RELEASES_URL` / `MAC_DMG_URL` / `WIN_SETUP_URL` /
+   `PRIVACY_URL` derived from it) and the `package.json` repository metadata all resolve
+   to `WONGIII/TokenTracker`. Upstream's README, docs, landing page
+   (`dashboard/index.html`), Homebrew instructions and `LICENSE` are untouched, so
+   attribution is preserved. This fork publishes no releases, so the updater now reports
+   "up to date" instead of offering an upstream build.
+
+6. **Default desktop pet: ZzH, and a pink pet page** — `dashboard/public/pets/zzh/`
+   carries `spritesheet.webp` + `pet.json` copied from the author's local pet package.
+   It is a **v2 atlas** (1536x2288 = 192x208 frames, 8 columns x 11 rows), which is what
+   enables the 16-way look direction. `zzh` joined `PET_CHARACTER_IDS`
+   (`dashboard/src/lib/pet-personality.js`), `BUILTIN_PETS`
+   (`dashboard/src/lib/pets-api.js`) and `BUILTIN_IDS` (`src/lib/pet-packages.js`), so
+   the id is reserved and cannot be shadowed by an imported package. It carries no
+   `nameKey` — "ZzH" is a proper noun and ships as a literal, so no copy-registry or
+   locale entry is needed. Defaults resolve to `zzh` when nothing is stored:
+   `DEFAULTS.character` (`dashboard/src/hooks/use-pet-settings.js`), the `PetPage`
+   fallbacks and `PetWindow.CurrentCharacter` on Windows; invalid or unsafe ids still
+   sanitize to `clawd`. The Windows tray gained a `ZzH` entry (`TrayStrings.cs` +
+   `TrayApplicationContext.cs`) so the pet stays reachable after switching away, and the
+   pet preview stage is pink (`bg-pink-100 dark:bg-pink-950/50` in `PetPage.jsx`).
+   `test/pet-assets.test.js` was split so the upstream v1 pets keep their web + macOS
+   parity assertions while a new test pins zzh's v2 geometry; no macOS sprite ships for
+   zzh because this fork only builds Windows/web.
+
 Sizes, endpoints and behaviours not listed above are unchanged from upstream.

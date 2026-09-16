@@ -938,6 +938,7 @@ internal sealed class PetWindow : Window
     public const string CharacterSprout = "sprout";
     public const string CharacterByte = "byte";
     public const string CharacterEmber = "ember";
+    public const string CharacterZzh = "zzh";
     private const string HiddenBuiltinsFilename = ".hidden-builtins.json";
 
     public static string NormalizeSize(string? value)
@@ -963,6 +964,7 @@ internal sealed class PetWindow : Window
             CharacterSprout => CharacterSprout,
             CharacterByte => CharacterByte,
             CharacterEmber => CharacterEmber,
+            CharacterZzh => CharacterZzh,
             CharacterClawd => CharacterClawd,
             CharacterBot => CharacterBot,
             _ when Regex.IsMatch(normalized, "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
@@ -1049,11 +1051,11 @@ internal sealed class PetWindow : Window
         {
             try
             {
-                if (!File.Exists(SettingsPath)) return CharacterClawd;
+                if (!File.Exists(SettingsPath)) return CharacterZzh;
                 var s = JsonNode.Parse(File.ReadAllText(SettingsPath))?.AsObject();
                 return NormalizeCharacter(s?["PetCharacter"]?.GetValue<string>());
             }
-            catch { return CharacterClawd; }
+            catch { return CharacterZzh; }
         }
     }
 

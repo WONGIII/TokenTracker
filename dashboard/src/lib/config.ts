@@ -2,7 +2,7 @@ import { getInsforgeRemoteUrl } from "./insforge-config";
 
 export const STATUSPAGE_URL = "https://tokentracker.statuspage.io/";
 
-export const REPO_URL = "https://github.com/xiufengsun/TokenTracker";
+export const REPO_URL = "https://github.com/WONGIII/TokenTracker";
 export const PRIVACY_URL = `${REPO_URL}/blob/main/docs/PRIVACY.md`;
 // The releases page lists every asset (used for the "other platforms" link and
 // as the fallback when we can't detect the OS).

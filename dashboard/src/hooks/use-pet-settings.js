@@ -9,7 +9,7 @@ import {
 import { BOT_COLOR_CHOICES } from "../lib/bot-appearance.js";
 import { normalizePetCharacter } from "../lib/pet-personality";
 
-const DEFAULTS = { visible: false, character: "clawd", size: "medium", botColor: "auto" };
+const DEFAULTS = { visible: false, character: "zzh", size: "medium", botColor: "auto" };
 
 export function usePetSettings() {
   const available = isNativeApp() && isPetBridgeAvailable();

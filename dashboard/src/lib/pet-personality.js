@@ -1,4 +1,4 @@
-export const PET_CHARACTER_IDS = ["clawd", "bot", "sprout", "byte", "ember"];
+export const PET_CHARACTER_IDS = ["clawd", "bot", "sprout", "byte", "ember", "zzh"];
 
 /**
  * How a character is drawn. Explicit because it used to be inferred from the
@@ -9,6 +9,8 @@ export const PET_CHARACTER_IDS = ["clawd", "bot", "sprout", "byte", "ember"];
  *   "clawd"  — the hand-authored per-state SVGs under /clawd/
  *   "vector" — the morphing engine in lib/bot/, see BotAnimated.jsx
  *   "atlas"  — a 192x208 sprite sheet, built in or from a pet package
+ *              (v1 = 9 rows / 1872px tall, v2 = 11 rows / 2288px, plus a 16-way
+ *              look-direction row pair that only v2 pets get)
  */
 // Prototype-free: a package id like "constructor" would otherwise resolve to Object
 // and match neither "vector" nor "atlas", falling through to the Clawd branch.

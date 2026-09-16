@@ -7,6 +7,10 @@ export const BUILTIN_PETS = [
   { id: "sprout", displayName: "Sprout", nameKey: "pet.character.sprout", spriteVersionNumber: 1, custom: false, assetUrl: "/pets/sprout/spritesheet.webp" },
   { id: "byte", displayName: "Byte", nameKey: "pet.character.byte", spriteVersionNumber: 1, custom: false, assetUrl: "/pets/byte/spritesheet.webp" },
   { id: "ember", displayName: "Ember", nameKey: "pet.character.ember", spriteVersionNumber: 1, custom: false, assetUrl: "/pets/ember/spritesheet.webp" },
+  // Fork default. V2 atlas (1536x2288 = 8x11 frames) and no nameKey: "ZzH" is a
+  // proper noun, so it ships as a literal instead of a copy-registry key that
+  // would need a translation in every locale.
+  { id: "zzh", displayName: "ZzH", spriteVersionNumber: 2, custom: false, assetUrl: "/pets/zzh/spritesheet.webp" },
 ];
 
 async function payload(response) {
