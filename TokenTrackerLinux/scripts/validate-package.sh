@@ -60,7 +60,7 @@ desktop_file="$TMPDIR_PACKAGE/usr/share/applications/tokentracker-linux.desktop"
 desktop-file-validate "$desktop_file"
 grep -Fxq 'Exec=tokentracker-linux %u' "$desktop_file"
 grep -Fxq 'Icon=tokentracker-linux' "$desktop_file"
-grep -Fxq 'MimeType=x-scheme-handler/tokentracker;' "$desktop_file"
+grep -Fxq 'MimeType=x-scheme-handler/ttzzh;' "$desktop_file"
 
 bundled_node="$TMPDIR_PACKAGE/usr/lib/tokentracker-linux/node"
 bundled_tracker="$TMPDIR_PACKAGE/usr/lib/tokentracker-linux/tokentracker/bin/tracker.js"

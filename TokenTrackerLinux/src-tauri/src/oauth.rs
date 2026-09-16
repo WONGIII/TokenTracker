@@ -40,7 +40,7 @@ impl PendingAuthCode {
 
 pub fn parse_auth_callback(raw: &str) -> Option<String> {
     let url = Url::parse(raw).ok()?;
-    if url.scheme() != "tokentracker"
+    if url.scheme() != "ttzzh"
         || url.host_str() != Some("auth")
         || url.path() != "/callback"
         || url.fragment().is_some()
@@ -178,7 +178,7 @@ pub fn ensure_appimage_protocol_registration() -> Result<bool, String> {
         .map_err(|error| format!("failed to write {}: {error}", desktop_path.display()))?;
 
     let registration = run_command_with_timeout(
-        Command::new("xdg-mime").args(["default", desktop_name, "x-scheme-handler/tokentracker"]),
+        Command::new("xdg-mime").args(["default", desktop_name, "x-scheme-handler/ttzzh"]),
         "xdg-mime registration",
         Duration::from_secs(3),
     )?;
@@ -191,7 +191,7 @@ pub fn ensure_appimage_protocol_registration() -> Result<bool, String> {
     }
 
     let query = run_command_with_timeout(
-        Command::new("xdg-mime").args(["query", "default", "x-scheme-handler/tokentracker"]),
+        Command::new("xdg-mime").args(["query", "default", "x-scheme-handler/ttzzh"]),
         "xdg-mime verification",
         Duration::from_secs(3),
     )?;

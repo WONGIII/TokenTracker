@@ -7,4 +7,4 @@ Icon=tokentracker-linux
 Terminal=false
 Categories=Development;Utility;
 StartupNotify=true
-MimeType=x-scheme-handler/tokentracker;
+MimeType=x-scheme-handler/ttzzh;

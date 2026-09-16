@@ -141,7 +141,7 @@ fn appimage_desktop_entry_registers_the_callback_and_quotes_the_path() {
     assert!(entry.contains(
         "Exec=\"/home/dev/Token Tracker 100%%/\\$\\`\\\"\\\\/TokenTracker-linux.AppImage\" %u"
     ));
-    assert!(entry.contains("MimeType=x-scheme-handler/tokentracker;"));
+    assert!(entry.contains("MimeType=x-scheme-handler/ttzzh;"));
     assert!(entry.contains("X-AppImage-Integrate=false"));
 }
 

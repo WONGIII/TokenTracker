@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-08-28T18:10:04.552Z",
+  "generatedAt": "2026-09-16T13:29:57.543Z",
   "root": "dashboard/src",
   "rules": {
     "colors": "hex/rgb(a) literals",
     "rawText": "JSX text nodes containing letters or digits"
   },
   "totals": {
-    "colors": 404,
+    "colors": 400,
     "rawText": 161
   },
   "files": {
@@ -17,23 +17,6 @@
         ") : avatarSrc && !avatarFailed ? (",
         ") : initialsFromName(displayName) === \"?\" ? ("
       ]
-    },
-    "dashboard/src/components/LeaderboardSummaryCard.test.jsx": {
-      "colors": 1,
-      "rawText": 0,
-      "rawTextTokens": []
-    },
-    "dashboard/src/components/LoginCard.jsx": {
-      "colors": 4,
-      "rawText": 1,
-      "rawTextTokens": [
-        "); const GITHUB_ICON = ("
-      ]
-    },
-    "dashboard/src/components/SortableColumnHeader.jsx": {
-      "colors": 4,
-      "rawText": 0,
-      "rawTextTokens": []
     },
     "dashboard/src/components/leaderboard/CommunityStatsModal.jsx": {
       "colors": 0,
@@ -54,6 +37,11 @@
         "= 1)) && ("
       ]
     },
+    "dashboard/src/components/LeaderboardSummaryCard.test.jsx": {
+      "colors": 1,
+      "rawText": 0,
+      "rawTextTokens": []
+    },
     "dashboard/src/components/settings/AccountSection.jsx": {
       "colors": 0,
       "rawText": 1,
@@ -67,6 +55,11 @@
       "rawTextTokens": [
         "GitHub"
       ]
+    },
+    "dashboard/src/components/SortableColumnHeader.jsx": {
+      "colors": 4,
+      "rawText": 0,
+      "rawTextTokens": []
     },
     "dashboard/src/contexts/LoginModalContext.jsx": {
       "colors": 0,
@@ -372,6 +365,13 @@
         "setTriggerNumAnim(false), 500); const colors = [\"#ff4757\", \"#ff6b81\", \"#ffa502\", \"#70a1ff\", \"#2ed573\", \"#a29bfe\"]; const shapes = [\"circle\", \"heart\"]; const newParticles = []; for (let i = 0; i"
       ]
     },
+    "dashboard/src/ui/dashboard/components/LimitAccountsCard.jsx": {
+      "colors": 0,
+      "rawText": 1,
+      "rawTextTokens": [
+        "0 ? ("
+      ]
+    },
     "dashboard/src/ui/dashboard/components/ProjectDetailModal.jsx": {
       "colors": 6,
       "rawText": 7,
@@ -429,7 +429,7 @@
       "colors": 0,
       "rawText": 1,
       "rawTextTokens": [
-        "0 ? groups :"
+        "0 ? allGroups :"
       ]
     },
     "dashboard/src/ui/dashboard/components/UsageLimitsPanel.test.jsx": {
@@ -505,15 +505,6 @@
         "zh-tw"
       ]
     },
-    "dashboard/src/ui/marketing/MarketingLanding.jsx": {
-      "colors": 0,
-      "rawText": 3,
-      "rawTextTokens": [
-        ") : ( // 未登录：Sign In 展示为主行动实色按钮，点击唤起 Modal",
-        ") : signedIn ? ( // 已登录：Open Dashboard 升级为主行动实色按钮",
-        "Token Tracker"
-      ]
-    },
     "dashboard/src/ui/marketing/components/BorderGlow.jsx": {
       "colors": 6,
       "rawText": 0,
@@ -523,6 +514,15 @@
       "colors": 2,
       "rawText": 0,
       "rawTextTokens": []
+    },
+    "dashboard/src/ui/marketing/MarketingLanding.jsx": {
+      "colors": 0,
+      "rawText": 3,
+      "rawTextTokens": [
+        ") : ( // 未登录：Sign In 展示为主行动实色按钮，点击唤起 Modal",
+        ") : signedIn ? ( // 已登录：Open Dashboard 升级为主行动实色按钮",
+        "Token Tracker"
+      ]
     },
     "dashboard/src/ui/marketing/v3/CapabilitiesSection.jsx": {
       "colors": 1,
@@ -552,13 +552,13 @@
         "0 ? Math.max(6, Math.round((tokens / maxTokens) * 100)) : 0; return ("
       ]
     },
-    "dashboard/src/ui/marketing/v3/TokenGalaxy.jsx": {
-      "colors": 2,
+    "dashboard/src/ui/marketing/v3/palette.js": {
+      "colors": 21,
       "rawText": 0,
       "rawTextTokens": []
     },
-    "dashboard/src/ui/marketing/v3/palette.js": {
-      "colors": 21,
+    "dashboard/src/ui/marketing/v3/TokenGalaxy.jsx": {
+      "colors": 2,
       "rawText": 0,
       "rawTextTokens": []
     },
@@ -586,7 +586,7 @@
       "rawTextTokens": [
         "!v||v",
         "Token Tracker",
-        "tokentracker.cc"
+        "github.com/WONGIII/TokenTrackerZzH"
       ]
     },
     "dashboard/src/ui/share/variants/BroadsheetCard.jsx": {
@@ -595,7 +595,7 @@
       "rawTextTokens": [
         "0; return (",
         "The Token Tracker",
-        "→ tokentracker.cc"
+        "→ github.com/WONGIII/TokenTrackerZzH"
       ]
     }
   }

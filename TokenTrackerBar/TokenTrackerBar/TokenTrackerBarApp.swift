@@ -231,7 +231,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            guard url.scheme == "tokentracker" else { continue }
+            guard url.scheme == "ttzzh" else { continue }
             if url.host == "auth" && url.path.hasPrefix("/done") {
                 DashboardWindowController.shared.handleAuthDone()
             } else if url.host == "auth" && url.path.hasPrefix("/callback") {

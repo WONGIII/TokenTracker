@@ -198,11 +198,11 @@ function AvatarUrlField({ avatar }) {
               className="h-7 w-7 rounded-full object-cover ring-1 ring-oai-gray-200 dark:ring-oai-gray-700"
             />
           ) : null}
-          <EditButton
-            label={copy("settings.account.edit")}
-            onClick={startEditingAvatar}
-            disabled={profileLoading || profileSaving}
-          />
+          {/* No `disabled` here on purpose: the neighbouring fields don't pass it
+              either, and profileLoading flickers true whenever the profile effect
+              re-runs, which made this button feel dead. The save handler guards
+              itself with profileSaving. */}
+          <EditButton label={copy("settings.account.edit")} onClick={startEditingAvatar} />
         </div>
       }
     />

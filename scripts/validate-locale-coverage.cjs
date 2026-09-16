@@ -263,6 +263,12 @@ function samePlaceholders(left, right) {
 function isAllowedSourceIdentical(record) {
   if (SOURCE_IDENTICAL_KEY_ALLOWLIST.some((pattern) => pattern.test(record.key))) return true;
   const sourceText = record.text.trim();
+  // Placeholder examples are not prose. A URL or a filesystem path reads the same
+  // in every language — "translating" one would make the example wrong — so these
+  // are exempt from the identical-text rule. Matches the input hints
+  // "~/.codex-work" and "https://example.com/me.png".
+  if (/^https?:\/\/\S+$/.test(sourceText)) return true;
+  if (/^~?\/[\w./-]+$/.test(sourceText)) return true;
   return PRODUCT_TERMINOLOGY_GLOSSARY.some((entry) => (
     entry.keyPatterns.some((pattern) => pattern.test(record.key)) &&
     entry.sourceIdentical.test(sourceText)
