@@ -1,4 +1,8 @@
-const DEFAULT_BASE_URL = "https://srctyff5.us-east.insforge.app";
+// FORK: upstream's hosted project was srctyff5.us-east.insforge.app. This build
+// talks to the self-hosted InsForge instead (see MODIFICATIONS.md), so a fresh
+// install — and any install whose config.json predates this fork — syncs to OUR
+// backend rather than the original author's.
+const DEFAULT_BASE_URL = "https://tt.977744.xyz";
 // InsForge projects this product has retired. b46ug8xu was production until
 // the 2026-04-19 migration to srctyff5 (0.5.67, commit 73f461b8); init
 // preserves any persisted config.baseUrl, so installs initialized before the
@@ -6,16 +10,14 @@ const DEFAULT_BASE_URL = "https://srctyff5.us-east.insforge.app";
 // project's backend went dark on 2026-07-27 (HTTP 503 on every request).
 // Persisted values naming these hosts must fall back to the current default.
 const LEGACY_INSFORGE_HOSTS = new Set(["b46ug8xu.us-east.insforge.app"]);
-const DEFAULT_DASHBOARD_URL = "https://www.tokentracker.cc";
+const DEFAULT_DASHBOARD_URL = "https://tt.977744.xyz";
 const DEFAULT_HTTP_TIMEOUT_MS = 20_000;
-// Public InsForge anon key (JWT, role=anon). Mirrors dashboard/src/lib/insforge-config.ts
-// (PROD_INSFORGE_ANON_KEY) — public by design (ships in the browser bundle and
-// appears in .github/workflows/*.yml). The local server needs it to call the
-// cross-device `tokentracker-account-*` edge functions on the popover's behalf.
-// (Previously this mistakenly used the full-access `ik_*` API key, which has
-// admin access and must never be shipped to clients.)
-const DEFAULT_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDU5NDd9.T0auta_IrVIh0uXW1bob5QSnzvsnJmN28r5XkSGEuQY";
+// Public anon key for the self-hosted InsForge. Mirrors
+// dashboard/src/lib/insforge-config.ts (PROD_INSFORGE_ANON_KEY) — public by
+// design: the local server needs it to call the cross-device
+// `tokentracker-account-*` edge functions on the popover's behalf, and it
+// cannot read another user's rows on its own. Never put the `ik_*` API key here.
+const DEFAULT_ANON_KEY = "anon_8b315a83487de79bc4d17a5089d81d02b55184ab";
 
 function resolveRuntimeConfig({ cli = {}, config = {}, env = process.env, defaults = {} } = {}) {
   // Older Windows test runs could leak their fixture HOME and persist

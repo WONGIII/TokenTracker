@@ -1850,7 +1850,7 @@ function createLocalApiHandler({ queuePath }) {
           accept: req.headers["accept"] || "*/*",
           "accept-language": req.headers["accept-language"] || "en",
           "accept-encoding": req.headers["accept-encoding"] || "gzip",
-          "user-agent": "TokenTracker/IPCheck (https://www.tokentracker.cc)",
+          "user-agent": "TokenTracker/IPCheck (https://tt.977744.xyz)",
           referer: `${IP_CHECK_TARGET}${targetPath}`,
         };
 
@@ -1956,7 +1956,7 @@ function createLocalApiHandler({ queuePath }) {
           headers: {
             accept: req.headers["accept"] || "image/*",
             "accept-language": req.headers["accept-language"] || "en",
-            "user-agent": "TokenTracker/AvatarProxy (https://www.tokentracker.cc)",
+            "user-agent": "TokenTracker/AvatarProxy (https://tt.977744.xyz)",
           },
         });
         if (!upstream.ok) {

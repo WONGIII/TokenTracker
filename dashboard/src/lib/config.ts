@@ -1,11 +1,13 @@
 import { getInsforgeRemoteUrl } from "./insforge-config";
 
+export const REPO_URL = "https://github.com/WONGIII/TokenTracker";
+
 // FORK: upstream points this at tokentracker.statuspage.io (their hosted status
 // page). This deployment has no status page, so "service status" lands on our
 // issue tracker instead of pretending someone else's page is ours.
+// NOTE: declared AFTER REPO_URL — a `const` referenced from an earlier line is a
+// temporal-dead-zone error at runtime, not a build error, and it blanks the app.
 export const STATUSPAGE_URL = `${REPO_URL}/issues`;
-
-export const REPO_URL = "https://github.com/WONGIII/TokenTracker";
 export const PRIVACY_URL = `${REPO_URL}/blob/main/docs/PRIVACY.md`;
 // The releases page lists every asset (used for the "other platforms" link and
 // as the fallback when we can't detect the OS).
