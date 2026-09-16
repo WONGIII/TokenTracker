@@ -1652,3 +1652,27 @@ limits.devin.setupHint.subtitle,ui,LimitsPage,UsageLimitsPanel,devin_hint_subtit
 limits.devin.setupHint.step1,ui,LimitsPage,UsageLimitsPanel,devin_hint_step1,"Install the Devin CLI and sign in with the command below — TokenTracker picks it up with no restart.",,active
 limits.devin.setupHint.note,ui,LimitsPage,UsageLimitsPanel,devin_hint_note,"Refresh this page after signing in. TokenTracker sends the saved session token only to Devin's official quota endpoint.",,active
 limits.devin.setupHint.snippet_login,ui,LimitsPage,UsageLimitsPanel,devin_hint_snippet_login,"devin auth login",,active
+limits.accounts.open,ui,LimitsPage,LimitAccountsCard,accounts_open,"Accounts",,active
+limits.accounts.title,ui,LimitsPage,LimitAccountsCard,accounts_title,"Several accounts per adapter",,active
+limits.accounts.subtitle,ui,LimitsPage,LimitAccountsCard,accounts_subtitle,"Track more than one login for the same tool — each gets its own card, label and plan.",,active
+limits.accounts.empty,ui,LimitsPage,LimitAccountsCard,accounts_empty,"No extra accounts yet.",,active
+limits.accounts.provider,ui,LimitsPage,LimitAccountsCard,accounts_provider,"Adapter",,active
+limits.accounts.label,ui,LimitsPage,LimitAccountsCard,accounts_label,"Label",,active
+limits.accounts.label_placeholder,ui,LimitsPage,LimitAccountsCard,accounts_label_placeholder,"Shown as the card title",,active
+limits.accounts.plan,ui,LimitsPage,LimitAccountsCard,accounts_plan,"Plan (optional)",,active
+limits.accounts.plan_placeholder,ui,LimitsPage,LimitAccountsCard,accounts_plan_placeholder,"e.g. GOAT, Moonshot",,active
+limits.accounts.api_key,ui,LimitsPage,LimitAccountsCard,accounts_api_key,"API key",,active
+limits.accounts.key_placeholder,ui,LimitsPage,LimitAccountsCard,accounts_key_placeholder,"Paste the key",,active
+limits.accounts.key_hint,ui,LimitsPage,LimitAccountsCard,accounts_key_hint,"Stored locally in config.json and used instead of the local CLI login.",,active
+limits.accounts.home,ui,LimitsPage,LimitAccountsCard,accounts_home,"Profile directory",,active
+limits.accounts.home_placeholder,ui,LimitsPage,LimitAccountsCard,accounts_home_placeholder,"~/.codex-work",,active
+limits.accounts.home_hint,ui,LimitsPage,LimitAccountsCard,accounts_home_hint,"This adapter authenticates with a local CLI session. Log in inside this directory with {{env}} set, then point the account here.",,active
+limits.accounts.add,ui,LimitsPage,LimitAccountsCard,accounts_add,"Add account",,active
+limits.accounts.cancel,ui,LimitsPage,LimitAccountsCard,accounts_cancel,"Cancel",,active
+limits.accounts.delete,ui,LimitsPage,LimitAccountsCard,accounts_delete,"Remove",,active
+limits.accounts.delete_title,ui,LimitsPage,LimitAccountsCard,accounts_delete_title,"Remove this account?",,active
+limits.accounts.delete_description,ui,LimitsPage,LimitAccountsCard,accounts_delete_description,"{{label}} will stop appearing on the Limits page. Its usage data is untouched.",,active
+limits.accounts.error_provider,ui,LimitsPage,LimitAccountsCard,accounts_error_provider,"Pick an adapter first.",,active
+limits.accounts.error_label,ui,LimitsPage,LimitAccountsCard,accounts_error_label,"Give the account a label.",,active
+limits.accounts.error_key,ui,LimitsPage,LimitAccountsCard,accounts_error_key,"Paste an API key.",,active
+limits.accounts.error_home,ui,LimitsPage,LimitAccountsCard,accounts_error_home,"Enter the profile directory.",,active

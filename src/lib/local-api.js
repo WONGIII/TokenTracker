@@ -2816,6 +2816,108 @@ function createLocalApiHandler({ queuePath }) {
       return true;
     }
 
+    // --- usage-limit accounts (several logins per adapter) ---
+    // The dashboard's Limits page manages these: one adapter, several API keys
+    // or CLI profiles, each rendered as its own card. GET is unauthenticated so
+    // the page can render the editor; POST requires local-auth because the
+    // payload carries API keys.
+    if (p === "/functions/tokentracker-limit-accounts") {
+      const {
+        ACCOUNT_MODES,
+        normalizeAccount,
+        readLimitAccounts,
+      } = require("./limit-accounts");
+      const { writeFileAtomic, chmod600IfPossible } = require("./fs");
+      const configPath = path.join(path.dirname(qp), "config.json");
+      const readConfig = () => {
+        try {
+          const parsed = JSON.parse(fs.readFileSync(configPath, "utf8"));
+          return parsed && typeof parsed === "object" ? parsed : {};
+        } catch {
+          return {};
+        }
+      };
+      const writeConfig = async (next) => {
+        await writeFileAtomic(configPath, JSON.stringify(next, null, 2));
+        await chmod600IfPossible(configPath);
+      };
+      // The editor needs to know which adapters accept a key and which need a
+      // profile directory, so the form can render the right field.
+      const providerCatalog = Object.entries(ACCOUNT_MODES).map(([id, modes]) => ({
+        id,
+        api_key: modes.key === true,
+        home_env: typeof modes.homeEnv === "string" ? modes.homeEnv : null,
+      }));
+      const listAccounts = () => readLimitAccounts({ home: os.homedir(), configPath });
+      const method = String(req.method || "GET").toUpperCase();
+      if (method === "GET") {
+        json(res, { ok: true, providers: providerCatalog, accounts: listAccounts() });
+        return true;
+      }
+      if (method === "POST" || method === "PUT") {
+        if (!isAuthorizedLocalMutation(req)) {
+          json(res, { ok: false, error: "Unauthorized" }, 401);
+          return true;
+        }
+        let body = {};
+        try {
+          body = await readJsonBody(req);
+        } catch {
+          body = {};
+        }
+        const action = String(body?.action || "").trim().toLowerCase();
+        const current = readConfig();
+        const stored = Array.isArray(current?.limits?.accounts) ? current.limits.accounts : [];
+        const withoutId = (id) =>
+          stored.filter((entry) => String(entry?.id || "").trim().toLowerCase() !== id);
+        if (action === "remove") {
+          const id = String(body?.id || "").trim().toLowerCase();
+          if (!id) {
+            json(res, { ok: false, error: "id is required" }, 400);
+            return true;
+          }
+          current.limits = { ...(current.limits || {}), accounts: withoutId(id) };
+        } else if (action === "add" || action === "update") {
+          // normalizeAccount is the same validation the poll uses, so a payload
+          // the editor accepts can never make the limits fetch throw later.
+          const account = normalizeAccount(body?.account, { home: os.homedir() });
+          if (!account) {
+            json(res, { ok: false, error: "invalid account" }, 400);
+            return true;
+          }
+          const entry = {
+            id: account.id,
+            provider: account.provider,
+            label: account.label,
+            ...(account.plan ? { plan: account.plan } : {}),
+            ...(account.apiKey ? { apiKey: account.apiKey } : {}),
+            ...(account.home ? { home: account.home } : {}),
+          };
+          current.limits = { ...(current.limits || {}), accounts: [...withoutId(account.id), entry] };
+        } else {
+          json(res, { ok: false, error: "action must be add, update or remove" }, 400);
+          return true;
+        }
+        try {
+          await writeConfig(current);
+        } catch (error) {
+          json(res, { ok: false, error: error?.message || "failed to save accounts" }, 500);
+          return true;
+        }
+        // The limits payload is cached; drop it so the next poll reflects the
+        // change instead of serving the previous account list for a minute.
+        try {
+          require("./usage-limits").resetUsageLimitsCache();
+        } catch {
+          /* cache reset is best-effort */
+        }
+        json(res, { ok: true, providers: providerCatalog, accounts: listAccounts() });
+        return true;
+      }
+      json(res, { error: "Method Not Allowed" }, 405);
+      return true;
+    }
+
     if (p === "/functions/tokentracker-proxy-test") {
       const { parseProxyPayload, buildProxyUrl } = require("./proxy-settings");
       const { runProxyConnectivityTest } = require("./proxy-env");

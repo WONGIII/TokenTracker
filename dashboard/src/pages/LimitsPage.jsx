@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
-import { Bell, BellOff, CalendarClock, Settings as SettingsIcon } from "lucide-react";
+import { Bell, BellOff, CalendarClock, KeyRound, Settings as SettingsIcon } from "lucide-react";
 import { Popover } from "@base-ui/react/popover";
 import { useUsageLimits } from "../hooks/use-usage-limits";
 import { useLimitsDisplayPrefs } from "../hooks/use-limits-display-prefs.js";
@@ -9,6 +9,7 @@ import { copy } from "../lib/copy";
 import { LimitsPageSkeleton } from "../components/LimitsPageSkeleton.jsx";
 import { UsageLimitsPanel } from "../ui/dashboard/components/UsageLimitsPanel.jsx";
 import { SubscriptionSettingsCard } from "../ui/dashboard/components/SubscriptionSettingsCard.jsx";
+import { LimitAccountsCard } from "../ui/dashboard/components/LimitAccountsCard.jsx";
 import { LocalOnlyNotice } from "../components/LocalOnlyNotice.jsx";
 import { isMockEnabled } from "../lib/mock-data";
 import { readUsageLimitsPreloadState } from "../lib/dashboard-preload.js";
@@ -65,7 +66,7 @@ function NotificationBlockedBubble() {
 
 export function LimitsPage() {
   const preloadedUsageLimits = readUsageLimitsPreloadState();
-  const { data: usageLimits, error, isLoading } = useUsageLimits(
+  const { data: usageLimits, error, isLoading, refresh: refreshUsageLimits } = useUsageLimits(
     preloadedUsageLimits
       ? { initialRefresh: true, initialState: preloadedUsageLimits, publishToPreloadCache: true }
       : { initialRefresh: true, publishToPreloadCache: true },
@@ -75,6 +76,7 @@ export function LimitsPage() {
   const [subscriptions, setSubscriptions] = React.useState([]);
   const [subscriptionsError, setSubscriptionsError] = React.useState(false);
   const [subscriptionsOpen, setSubscriptionsOpen] = React.useState(false);
+  const [accountsOpen, setAccountsOpen] = React.useState(false);
   const [searchParams] = useSearchParams();
   const subscriptionRefreshRef = React.useRef(0);
 
@@ -153,6 +155,22 @@ export function LimitsPage() {
                         subscriptions={subscriptions}
                         onChanged={refreshSubscriptions}
                       />
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
+              <Popover.Root open={accountsOpen} onOpenChange={setAccountsOpen}>
+                <Popover.Trigger
+                  aria-label={copy("limits.accounts.open")}
+                  title={copy("limits.accounts.open")}
+                  className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-oai-gray-200 dark:border-oai-gray-800 bg-white dark:bg-oai-gray-900 text-oai-gray-600 dark:text-oai-gray-400 hover:text-oai-black dark:hover:text-white"
+                >
+                  <KeyRound className="h-4 w-4" aria-hidden />
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-50">
+                    <Popover.Popup className="rounded-xl border border-oai-gray-200 bg-white shadow-lg dark:border-oai-gray-800 dark:bg-oai-gray-900">
+                      <LimitAccountsCard onChanged={() => void refreshUsageLimits()} />
                     </Popover.Popup>
                   </Popover.Positioner>
                 </Popover.Portal>

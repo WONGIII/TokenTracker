@@ -1253,8 +1253,15 @@ export function UsageLimitsPanel({ claude, codex, cursor, gemini, kimi, kiro, gr
 
   // Hiding a tool hides its limits row, but not a subscription the user
   // entered by hand — that data keeps its row regardless of visibility prefs.
+  // An adapter that has accounts configured should not ALSO show its built-in
+  // "not connected" row: the user already answered that question, and the row
+  // pushed the real cards down the page.
+  const accountProviders = new Set(
+    (Array.isArray(accounts) ? accounts : []).map((entry) => entry?.provider).filter(Boolean),
+  );
   const groups = effectiveOrder
     .filter((id) => !visibility || visibility[id] !== false || subscriptionByProvider.has(id))
+    .filter((id) => !(accountProviders.has(id) && !dataById[id]?.configured))
     .map((id) => {
       return renderProviderGroup(
         id,
