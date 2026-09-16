@@ -34,25 +34,21 @@ function clearDismissed() {
 }
 
 /**
- * The menu-bar Clawd as a white monochrome glyph, drawn inline with a tight
- * viewBox (body only, no ground shadow / whitespace) so it stays crisp and
- * vertically centers cleanly next to the wing number — mirroring how the real
- * island renders the status-bar icon as a white template image.
+ * This fork's mark (the big Z from docs/logo.svg) as a white monochrome glyph,
+ * drawn inline with a tight viewBox so it stays crisp and vertically centers
+ * cleanly next to the wing number — mirroring how the real island renders the
+ * status-bar icon as a white template image.
+ *
+ * It replaced upstream's Clawd glyph: the island mock-up is a screenshot of OUR
+ * app, so it should show OUR companion, not the original author's mascot.
  */
-function ClawdGlyph({ className }) {
+function ZzhGlyph({ className }) {
   return (
     <svg viewBox="0 6 15 9" fill="currentColor" aria-hidden="true" className={className}>
-      {/* body (white via currentColor) */}
-      <rect x="2" y="6" width="11" height="7" />
-      <rect x="0" y="9" width="2" height="2" />
-      <rect x="13" y="9" width="2" height="2" />
-      <rect x="3" y="13" width="1" height="2" />
-      <rect x="5" y="13" width="1" height="2" />
-      <rect x="9" y="13" width="1" height="2" />
-      <rect x="11" y="13" width="1" height="2" />
-      {/* eyes punched out to the island's black background */}
-      <rect className="fill-black" x="4" y="8" width="1" height="2" />
-      <rect className="fill-black" x="10" y="8" width="1" height="2" />
+      {/* top bar, diagonal and bottom bar — same geometry as the app icon */}
+      <rect x="1" y="6" width="13" height="2.2" />
+      <rect x="1" y="12.8" width="13" height="2.2" />
+      <path d="M11.8 8.2H14L3.2 12.8H1Z" />
     </svg>
   );
 }
@@ -95,8 +91,8 @@ function IslandPreview({ reduceMotion }) {
         transition={reduceMotion ? undefined : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
       >
         <span className="flex items-center gap-1.5 text-[9px] font-semibold tracking-tight text-white/90 tabular-nums">
-          {/* the real menu-bar Clawd, white template glyph */}
-          <ClawdGlyph className="h-[9px] w-[15px] translate-y-[0.5px] text-white/90" />
+          {/* the menu-bar mark, white template glyph */}
+          <ZzhGlyph className="h-[9px] w-[15px] translate-y-[0.5px] text-white/90" />
           8.2M
         </span>
         {/* the physical notch sits here */}

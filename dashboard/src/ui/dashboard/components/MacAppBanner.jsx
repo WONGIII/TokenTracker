@@ -5,6 +5,15 @@ import { useInsforgeAuth } from "../../../contexts/InsforgeAuthContext.jsx";
 import { ClawdAnimated } from "../../foundation/ClawdAnimated.jsx";
 import { useClawdState } from "../../../hooks/useClawdState.js";
 
+// The banner advertises this fork, so it shows this fork's companion (ZzH)
+// instead of upstream's Clawd. Sprite is the same v2 atlas the Pet page uses.
+const ZZH_PET = {
+  id: "zzh",
+  displayName: "ZzH",
+  spriteVersionNumber: 2,
+  assetUrl: "/pets/zzh/spritesheet.webp",
+};
+
 const DISMISS_KEY = "macAppBannerDismissed";
 const LOGIN_DISMISS_KEY = "leaderboardBannerDismissed";
 const RELEASE_URL = "https://github.com/WONGIII/TokenTracker/releases/latest";
@@ -83,7 +92,7 @@ export function MacAppBanner({ todayTokens = 0, isSyncing = false, enterDelay = 
     onButtonClick = openLoginModal;
   } else {
     title = "Try the Menu Bar App";
-    subtitle = "Always-on stats with Clawd companion";
+    subtitle = "Always-on stats with ZzH companion";
     buttonLabel = "Download";
     buttonIcon = (
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="opacity-70">
@@ -107,7 +116,7 @@ export function MacAppBanner({ todayTokens = 0, isSyncing = false, enterDelay = 
     >
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            <ClawdAnimated state={clawdState} size={56} />
+            <ClawdAnimated character="zzh" pet={ZZH_PET} state={clawdState} size={56} />
           </div>
 
           <div className="flex-1 min-w-0">
