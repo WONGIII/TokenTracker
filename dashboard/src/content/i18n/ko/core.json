@@ -200,6 +200,7 @@
   "limits.tooltip.qoder_cached": "캐시된 제한입니다. 업데이트하려면 Qoder를 실행하세요。",
   "limits.bar.sub_one_percent": "<1",
   "limits.status.not_connected": "연결되지 않음",
+  "limits.account.unsupported": "이 어댑터의 한도는 로컬 CLI 로그인에서 가져옵니다. API 키 대신 두 번째 프로필 디렉터리를 지정하세요.",
   "limits.status.no_data": "실시간 한도 데이터가 반환되지 않았습니다",
   "limits.opencodeGo.status.inactive": "OpenCode Go 구독이 비활성 상태입니다",
   "limits.opencodeGo.setupHint.title": "OpenCode Go 연결",

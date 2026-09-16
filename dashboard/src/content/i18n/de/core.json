@@ -115,6 +115,7 @@
   "limits.label.copilot_premium": "Premium",
   "limits.label.copilot_chat": "Chat",
   "limits.status.not_connected": "Nicht verbunden",
+  "limits.account.unsupported": "Dieser Adapter liest sein Kontingent aus dem lokalen CLI-Login — nutze ein zweites Profilverzeichnis statt eines API-Schlüssels.",
   "limits.status.no_data": "Keine Echtzeit-Limitdaten zurückgegeben",
   "limits.opencodeGo.status.inactive": "Das OpenCode-Go-Abonnement ist inaktiv",
   "limits.opencodeGo.setupHint.title": "OpenCode Go verbinden",

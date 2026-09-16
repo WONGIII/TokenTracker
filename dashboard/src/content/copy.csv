@@ -820,6 +820,7 @@ limits.tooltip.antigravity_cached,ui,LimitsPage,UsageLimitsPanel,antigravity_cac
 limits.tooltip.qoder_cached,ui,LimitsPage,UsageLimitsPanel,qoder_cached_tooltip,"Cached limits. Run Qoder to refresh.",,active
 limits.bar.sub_one_percent,ui,LimitsPage,UsageLimitsPanel,bar_sub_one_percent,"<1",,active
 limits.status.not_connected,ui,LimitsPage,UsageLimitsPanel,status_not_connected,"Not connected",,active
+limits.account.unsupported,ui,LimitsPage,UsageLimitsPanel,account_unsupported,"This adapter reads its quota from the local CLI login — add a second profile directory instead of an API key.",,active
 limits.status.no_data,ui,LimitsPage,UsageLimitsPanel,status_no_data,"No live limit data returned",,active
 limits.opencodeGo.status.inactive,ui,LimitsPage,UsageLimitsPanel,opencode_go_status_inactive,"OpenCode Go subscription is inactive",,active
 limits.status.all_hidden,ui,LimitsPage,UsageLimitsPanel,status_all_hidden,"All limit providers are hidden. Open display settings to show them.",,active

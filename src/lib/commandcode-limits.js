@@ -249,8 +249,11 @@ async function fetchCommandcodeLimits({
   env = process.env,
   fetchImpl = fetch,
   baseUrl = COMMANDCODE_API_BASE_URL,
+  // Multi-account support: an explicit key wins over the local auth.json.
+  apiKey: apiKeyOverride,
 } = {}) {
-  const apiKey = readCommandcodeApiKey({ home, env });
+  const apiKey =
+    (typeof apiKeyOverride === "string" && apiKeyOverride.trim()) || readCommandcodeApiKey({ home, env });
   if (!apiKey) return { configured: false };
 
   const origin = resolveCommandcodeOrigin(baseUrl);

@@ -226,6 +226,7 @@
   "limits.reauth.tooltip": "登录已过期——在终端运行一次 `{{command}}` 重新登录，然后刷新。",
   "limits.bar.sub_one_percent": "<1",
   "limits.status.not_connected": "未连接",
+  "limits.account.unsupported": "这个适配器的限额来自本地 CLI 登录态——请用第二个配置目录，而不是 API key。",
   "limits.status.no_data": "未返回实时限额数据",
   "limits.opencodeGo.status.inactive": "OpenCode Go 订阅已失效",
   "limits.status.all_hidden": "所有限额提供商都已隐藏。请打开显示设置重新显示。",

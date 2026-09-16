@@ -600,7 +600,7 @@ function renderProviderExtra(kind, data) {
   return null;
 }
 
-function renderConfiguredProvider(id, data, title, mode, expanded, onToggle, badge = null, subscription = null, now = Date.now()) {
+function renderConfiguredProvider(id, data, title, mode, expanded, onToggle, badge = null, subscription = null, now = Date.now(), groupKey = id) {
   const spec = PROVIDER_LIMIT_SPECS[id];
   if (!spec) return null;
   // Pace is computed once per window here and shared by the bar + the detail.
@@ -611,7 +611,7 @@ function renderConfiguredProvider(id, data, title, mode, expanded, onToggle, bad
   const extra = renderProviderExtra(spec.extra, data);
   return (
     <ToolGroup
-      key={id}
+      key={groupKey}
       name={title}
       providerId={id}
       expandable={rows.length > 0 || Boolean(subscription)}
@@ -634,12 +634,12 @@ function renderConfiguredProvider(id, data, title, mode, expanded, onToggle, bad
 // fetch error). A linked subscription still belongs to this row: it is
 // user-entered data, so its badge/progress stay visible regardless of the
 // tool's own configuration state.
-function renderUnlinkedProvider(id, statusNodes, expanded, onToggle, subscription = null, now = Date.now(), mode = LIMIT_DISPLAY_MODES.USED) {
+function renderUnlinkedProvider(id, statusNodes, expanded, onToggle, subscription = null, now = Date.now(), mode = LIMIT_DISPLAY_MODES.USED, groupKey = id, title = null) {
   const hasSubscription = Boolean(subscription);
   return (
     <ToolGroup
-      key={id}
-      name={limitProviderName(id)}
+      key={groupKey}
+      name={title || limitProviderName(id)}
       providerId={id}
       expandable={hasSubscription}
       expanded={expanded}
@@ -655,6 +655,39 @@ function renderUnlinkedProvider(id, statusNodes, expanded, onToggle, subscriptio
       ) : null}
     </ToolGroup>
   );
+}
+
+// Extra accounts (Settings → Usage & Limits → Accounts): the same adapter, several
+// logins. Each renders as its own card — the user's label as the title, that
+// account's own windows underneath — so two Kimi keys or two Codex profiles are
+// distinguishable at a glance. "unsupported" means the adapter's quota can only
+// come from the local CLI session, so a second account needs a second profile
+// directory rather than a key.
+function renderAccountGroup(entry, mode, expanded, onToggle, now = Date.now()) {
+  const providerId = entry.provider;
+  const groupKey = `account:${entry.id}`;
+  if (!entry || !PROVIDER_LIMIT_SPECS[providerId]) return null;
+  const title = entry.plan_label ? `${entry.label} · ${entry.plan_label}` : entry.label;
+  if (!entry.configured || entry.error) {
+    const unsupported = entry.error === "unsupported";
+    const message = unsupported
+      ? copy("limits.account.unsupported")
+      : entry.error
+        ? copy("shared.error.prefix", { error: entry.error })
+        : copy("limits.status.not_connected");
+    return renderUnlinkedProvider(
+      providerId,
+      <StatusLine tone={entry.error && !unsupported ? "error" : undefined}>{message}</StatusLine>,
+      expanded,
+      onToggle,
+      null,
+      now,
+      mode,
+      groupKey,
+      title,
+    );
+  }
+  return renderConfiguredProvider(providerId, entry, title, mode, expanded, onToggle, null, null, now, groupKey);
 }
 
 function renderProviderGroup(id, data, mode, expanded, onToggle, subscription = null, now = Date.now()) {
@@ -1169,7 +1202,7 @@ function useWidestLabelWidth(containerRef) {
   return labelWidth;
 }
 
-export function UsageLimitsPanel({ claude, codex, cursor, gemini, kimi, kiro, grok, antigravity, copilot, zcode, opencodeGo, commandCode, qoder, qoderCn, codingPlan, agentPlan, devin, order, visibility, displayMode, subscriptions = [], showSubscriptions = true }) {
+export function UsageLimitsPanel({ claude, codex, cursor, gemini, kimi, kiro, grok, antigravity, copilot, zcode, opencodeGo, commandCode, qoder, qoderCn, codingPlan, agentPlan, devin, accounts = [], order, visibility, displayMode, subscriptions = [], showSubscriptions = true }) {
   const dataById = { claude, codex, cursor, gemini, kimi, kiro, grok, antigravity, copilot, zcode, opencodeGo, commandCode, qoder, qoderCn, codingPlan, agentPlan, devin };
   const containerRef = useRef(null);
   const labelWidth = useWidestLabelWidth(containerRef);
@@ -1235,6 +1268,21 @@ export function UsageLimitsPanel({ claude, codex, cursor, gemini, kimi, kiro, gr
     })
     .filter(Boolean);
 
+  // Accounts render after the built-in adapters, in config order.
+  const accountGroups = (Array.isArray(accounts) ? accounts : [])
+    .map((entry) => {
+      const key = `account:${entry?.id}`;
+      return renderAccountGroup(
+        entry,
+        effectiveMode,
+        expandedId === key,
+        () => setExpandedId((prev) => (prev === key ? null : key)),
+        now,
+      );
+    })
+    .filter(Boolean);
+  const allGroups = [...groups, ...accountGroups];
+
   return (
     <FadeIn delay={0.15}>
       <Card>
@@ -1246,7 +1294,7 @@ export function UsageLimitsPanel({ claude, codex, cursor, gemini, kimi, kiro, gr
           <h3 className="text-sm font-medium text-oai-gray-500 dark:text-oai-gray-300 uppercase tracking-wide">
             {copy("limits.panel.title")}{copy("limits.panel.mode_separator")}{modeLabel}
           </h3>
-          {groups.length > 0 ? groups : <StatusLine>{copy("limits.status.all_hidden")}</StatusLine>}
+          {allGroups.length > 0 ? allGroups : <StatusLine>{copy("limits.status.all_hidden")}</StatusLine>}
         </div>
       </Card>
     </FadeIn>

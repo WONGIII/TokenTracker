@@ -211,6 +211,7 @@
   "limits.tooltip.qoder_cached": "快取的額度。啟動 Qoder 以重新整理。",
   "limits.bar.sub_one_percent": "<1",
   "limits.status.not_connected": "未連線",
+  "limits.account.unsupported": "這個適配器的限額來自本機 CLI 登入狀態——請改用第二個設定目錄，而不是 API key。",
   "limits.status.no_data": "未返回即時限額資料",
   "limits.opencodeGo.status.inactive": "OpenCode Go 訂閱已失效",
   "limits.status.all_hidden": "所有限額提供商都已隱藏。請開啟顯示設定重新顯示。",

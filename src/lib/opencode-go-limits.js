@@ -737,8 +737,11 @@ async function fetchOpencodeGoLimits({
   nowMs = Date.now(),
   timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
   sqliteOptions = {},
+  // Multi-account support: an explicit key wins over OPENCODE_GO_API_KEY so one
+  // install can track several Go subscriptions.
+  apiKey: apiKeyOverride,
 } = {}) {
-  const apiKey = readApiKey(env);
+  const apiKey = (typeof apiKeyOverride === "string" && apiKeyOverride.trim()) || readApiKey(env);
   const cfg = readConfig(env);
   const allowLocalEstimate = localEstimateEnabled(env);
 

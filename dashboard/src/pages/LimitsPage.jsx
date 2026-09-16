@@ -213,6 +213,7 @@ export function LimitsPage() {
                 codingPlan={usageLimits?.codingPlan}
                 agentPlan={usageLimits?.agentPlan}
                 devin={usageLimits?.devin}
+                accounts={usageLimits?.accounts}
                 order={prefs.order}
                 visibility={prefs.visibility}
                 displayMode={prefs.displayMode}

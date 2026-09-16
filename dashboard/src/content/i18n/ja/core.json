@@ -200,6 +200,7 @@
   "limits.tooltip.qoder_cached": "キャッシュされた制限値。更新するには Qoder を実行してください。",
   "limits.bar.sub_one_percent": "<1",
   "limits.status.not_connected": "未接続",
+  "limits.account.unsupported": "このアダプタの上限はローカルの CLI ログインから取得します。API キーではなく 2 つ目のプロファイルディレクトリを指定してください。",
   "limits.status.no_data": "リアルタイムの制限データが返されませんでした",
   "limits.opencodeGo.status.inactive": "OpenCode Go のサブスクリプションは無効です",
   "limits.opencodeGo.setupHint.title": "OpenCode Go を接続",

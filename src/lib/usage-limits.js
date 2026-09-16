@@ -28,6 +28,7 @@ const {
   fetchCursorSandUsageStatus,
 } = require("./cursor-config");
 const { fetchGrokLimits } = require("./grok-limits");
+const { readLimitAccounts, fetchAllAccountLimits } = require("./limit-accounts");
 const { fetchZcodeLimits } = require("./zcode-limits");
 const { fetchOpencodeGoLimits } = require("./opencode-go-limits");
 const { fetchCommandcodeLimits } = require("./commandcode-limits");
@@ -925,12 +926,16 @@ async function fetchKimiUsage(accessToken, { fetchImpl = fetch } = {}) {
   return res.json();
 }
 
-async function fetchKimiLimits({ home, env, fetchImpl = fetch } = {}) {
-  if (!hasKimiConfig({ home, env })) {
+async function fetchKimiLimits({ home, env, fetchImpl = fetch, accessToken: accessTokenOverride } = {}) {
+  // Multi-account support: an explicit token (Settings → Usage & Limits →
+  // Accounts) replaces the local CLI login entirely, so a second Kimi account
+  // needs no second ~/.kimi profile.
+  const explicitToken = typeof accessTokenOverride === "string" ? accessTokenOverride.trim() : "";
+  if (!explicitToken && !hasKimiConfig({ home, env })) {
     return { configured: false };
   }
-  const creds = loadKimiCredentials({ home, env });
-  let accessToken = typeof creds?.access_token === "string" ? creds.access_token.trim() : "";
+  const creds = explicitToken ? null : loadKimiCredentials({ home, env });
+  let accessToken = explicitToken || (typeof creds?.access_token === "string" ? creds.access_token.trim() : "");
   if (!accessToken) {
     return { configured: false };
   }
@@ -4202,8 +4207,8 @@ async function fetchUsageLimitsUncached({
     agentPlan: withPlanLabel(agentPlan, agentPlan?.plan_label, "Ark Agent Plan"),
   };
 
-  for (const [providerName, provider] of Object.entries(data)) {
-    if (providerName === "fetched_at" || !provider || typeof provider !== "object") continue;
+  const attachProvenance = (provider) => {
+    if (!provider || typeof provider !== "object") return;
     const capturedAt = provider.cached_at || data.fetched_at;
     const ageMs = Math.max(0, nowMs - Date.parse(capturedAt || ""));
     const stale = provider.stale === true || (Number.isFinite(ageMs) && ageMs > 10 * 60 * 1000);
@@ -4221,6 +4226,35 @@ async function fetchUsageLimitsUncached({
       stale,
       age_seconds: Number.isFinite(ageMs) ? Math.round(ageMs / 1000) : null,
     };
+  };
+
+  for (const [providerName, provider] of Object.entries(data)) {
+    if (providerName === "fetched_at") continue;
+    attachProvenance(provider);
+  }
+
+  // Extra accounts (Settings → Usage & Limits → Accounts): the same adapter,
+  // several logins, each rendered as its own card. Fail-soft — a broken account
+  // entry must never take the built-in provider rows down with it.
+  const accountList = readLimitAccounts({ home });
+  if (accountList.length > 0) {
+    try {
+      const accountEntries = await fetchAllAccountLimits(accountList, {
+        fetchers: {
+          kimi: fetchKimiLimits,
+          opencodeGo: fetchOpencodeGoLimits,
+          commandCode: fetchCommandcodeLimits,
+        },
+        env,
+        home,
+        fetchImpl: providerFetch,
+        nowMs,
+      });
+      for (const entry of accountEntries) attachProvenance(entry);
+      if (accountEntries.length > 0) data.accounts = accountEntries;
+    } catch (_error) {
+      /* accounts are additive: never block the built-in limits */
+    }
   }
 
   cacheByDevinSelection[devinSelectionKey({ devinEnabled })] = {
