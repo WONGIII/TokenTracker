@@ -1016,6 +1016,28 @@ export default async function (req: Request): Promise<Response> {
     // This is cheap in scheduled total refreshes (normally zero or one day)
     // and avoids depending on the legacy postgres-owned nightly function,
     // whose cross-device semantics predate machine clusters (issue #412).
+    // Self-heal before aggregating. The advance below only moves the watermark forward, so
+    // history that arrives after it has passed — a new user's back-history, which is the
+    // normal case for a first sync — is never aggregated: that account's entry read 0
+    // until someone rebuilt the rollup by hand. The repair compares the rollup against the
+    // source table and rebuilds the range when they disagree; it is a no-op otherwise.
+    if (period === "total") {
+      const { error: repairErr } = await client.database.rpc(
+        "leaderboard_rollup_repair_if_needed",
+      );
+      if (repairErr) {
+        // Never silent: a swallowed error here looks exactly like "nothing to repair",
+        // which is how a missing PostgREST schema-cache entry hid a broken repair.
+        logRefreshEvent({
+          event: "rollup_repair",
+          request_id: requestId,
+          source: requestSource,
+          period,
+          error: repairErr.message,
+        });
+      }
+    }
+
     if (period === "total") {
       const { error: advanceErr } = await client.database.rpc(
         "leaderboard_rollup_daily_advance_v2",
