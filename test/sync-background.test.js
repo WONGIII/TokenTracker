@@ -740,7 +740,9 @@ test("bounded native publication leaves backlog for the next native tick without
       JSON.stringify({ version: 1, retryAtMs: Date.now() + 60_000 }),
       "utf8",
     );
-    const rows = Array.from({ length: 1_001 }, (_, index) => ({
+    // Larger than one tick's budget (20 batches x 200 rows) so the test can prove a
+    // backlog survives to the next tick.
+    const rows = Array.from({ length: 8_001 }, (_, index) => ({
       source: "codex",
       model: `benchmark-model-${index}`,
       hour_start: "2026-06-30T00:00:00.000Z",
@@ -780,7 +782,8 @@ test("bounded native publication leaves backlog for the next native tick without
     const queueState = JSON.parse(
       await fs.readFile(path.join(trackerDir, "queue.state.json"), "utf8"),
     );
-    assert.equal(ingestCalls, 5);
+    // One tick's budget exactly: the rest must survive to the next tick.
+    assert.equal(ingestCalls, 20);
     assert.ok(queueState.offset < (await fs.stat(queuePath)).size);
     assert.equal(
       await fs.stat(path.join(trackerDir, "auto.retry.json")).catch(() => null),

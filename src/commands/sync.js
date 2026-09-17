@@ -3138,15 +3138,26 @@ async function cmdSync(argv, context = {}) {
           // than that needed several syncs to finish, which reads as "it never
           // syncs everything". A routine sync stays modest; a real backlog drains
           // in a single pass (the loop still stops at the end of the file).
-          maxBatchesSmall: 5,
-          maxBatchesLarge: 5,
+          maxBatchesSmall: 20,
+          maxBatchesLarge: 20,
         },
       });
     }
 
+    // An unverified identity opens the upload block even when nothing is pending: a
+    // re-login re-issues the device token, and the new token may belong to a different
+    // account that has to receive the whole history.
+    const preUploadState = (await readJson(queueStatePath)) || {};
+    const identityUnverified = !preUploadState.syncedUserId
+      || preUploadState.syncedDeviceToken !== runtime.deviceToken;
+    // Only a "nothing to send" decision may be widened. A throttled or backed-off
+    // upload must stay throttled: the probe is a convenience, not a way around the
+    // failure backoff.
+    const identityProbeAllowed = identityUnverified
+      && (!autoUploadDecision || autoUploadDecision.reason === "no-pending");
     if (runtime.deviceToken && runtime.baseUrl &&
         (!isBackgroundLightweightSync || opts.publishAccount) &&
-        (!autoUploadDecision || autoUploadDecision.allowed)) {
+        (!autoUploadDecision || autoUploadDecision.allowed || identityProbeAllowed)) {
       uploadAttempted = true;
       // Mirror the machine identity into the purge-surviving seed file so a
       // future `uninstall --purge` + reinstall recovers the same cloud device
@@ -3167,6 +3178,7 @@ async function cmdSync(argv, context = {}) {
             queuePath,
             queueStatePath,
             maxBatches: budgetOverride ?? (opts.drain ? 1000 : (autoUploadDecision?.maxBatches || 5)),
+            probe: identityProbeAllowed,
             batchSize: autoUploadDecision?.batchSize || 200,
           });
         try {
@@ -3208,6 +3220,7 @@ async function cmdSync(argv, context = {}) {
               ...stateNow,
               offset: hadUploaded ? 0 : Number(stateNow.offset || 0),
               syncedUserId: ingestUserId,
+              syncedDeviceToken: runtime.deviceToken,
               updatedAt: new Date().toISOString(),
             });
             if (hadUploaded) {
@@ -3936,7 +3949,7 @@ const MAX_INGEST_BUCKETS = 500;
 // history than that needed several syncs and looked like it never synced
 // everything. One call now drains the whole queue: the loop already stops when
 // the file is exhausted, so the cap only bounds a pathological queue.
-async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, queueStatePath, maxBatches = 500, batchSize = 200 }) {
+async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, queueStatePath, maxBatches = 500, batchSize = 200, probe = false }) {
   const state = (await readJson(queueStatePath)) || { offset: 0 };
   let offset = Number(state.offset || 0);
   let inserted = 0;
@@ -3949,6 +3962,33 @@ async function drainQueueToCloud({ baseUrl, anonKey, deviceToken, queuePath, que
   const queueSize = await safeStatSize(queuePath);
   const limit = Math.min(Math.max(1, Math.floor(Number(batchSize || 200))), MAX_INGEST_BUCKETS);
 
+  // Identity probe: called when this device token has never reported an account, or
+  // the token changed (a re-login). An empty batch is a valid ingest call — it stores
+  // nothing and answers with the account the token writes as — so this works even when
+  // the queue is already fully uploaded, which is the normal state after a completed
+  // sync and exactly why an identity change could otherwise go unnoticed.
+  if (probe && offset >= queueSize) {
+    const probeRoot = baseUrl.replace(/\/$/, "");
+    const probeHeaders = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: "Bearer " + deviceToken,
+    };
+    if (anonKey) probeHeaders.apikey = anonKey;
+    try {
+      const probeRes = await fetch(probeRoot + "/functions/" + INGEST_SLUG, {
+        method: "POST",
+        headers: probeHeaders,
+        body: JSON.stringify({ hourly: [] }),
+      });
+      if (probeRes.ok) {
+        const probeData = await probeRes.json().catch(() => ({}));
+        if (typeof probeData?.user_id === "string" && probeData.user_id) userId = probeData.user_id;
+      }
+    } catch {
+      /* a failed probe must never break a sync that had nothing to upload */
+    }
+  }
   for (let batch = 0; batch < maxBatches; batch++) {
     if (offset >= queueSize) break;
     const result = await readQueueBatch(queuePath, offset, limit);
