@@ -204,12 +204,15 @@ function useAvatarActions(state, mutateProfile) {
         state.setAvatarUrl(response?.avatar_url || raw);
         state.setEditingAvatar(false);
         state.setAvatarError(null);
-        // The header/sidebar identity chip caches the profile URL; tell it to
-        // re-read so the new avatar shows without a page reload.
+        // The header/sidebar identity chip caches the profile URL. Send the new value
+        // so it swaps immediately and refreshes that cache in the same breath — no
+        // revalidation round trip, and no stale avatar on the next reload.
         try {
-          globalThis.dispatchEvent?.(new Event("tt:profile-updated"));
+          globalThis.dispatchEvent?.(new CustomEvent("tt:profile-updated", {
+            detail: { avatarUrl: response?.avatar_url || raw || "" },
+          }));
         } catch {
-          /* a missing Event constructor must not fail the save */
+          /* a missing CustomEvent constructor must not fail the save */
         }
       },
     });

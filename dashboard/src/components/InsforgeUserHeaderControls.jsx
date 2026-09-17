@@ -26,26 +26,63 @@ function pickAvatarUrl(user) {
  * Listens for `tt:profile-updated` so saving the field updates this chip without
  * a page reload.
  */
+const AVATAR_CACHE_KEY = "tokentracker.profile.avatar.v1";
+
+function readCachedAvatarUrl() {
+  try {
+    return globalThis.localStorage?.getItem(AVATAR_CACHE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeCachedAvatarUrl(value) {
+  try {
+    if (value) globalThis.localStorage?.setItem(AVATAR_CACHE_KEY, value);
+    else globalThis.localStorage?.removeItem(AVATAR_CACHE_KEY);
+  } catch {
+    /* private mode / disabled storage: the chip still works, just uncached */
+  }
+}
+
 function useProfileAvatarUrl(signedIn, getAccessToken) {
-  const [url, setUrl] = React.useState("");
+  // Start from the cached value so the chip renders the <img> immediately instead of
+  // waiting out a profile round trip (measured 1.0-1.6s through the domain) before it
+  // even knows which URL to use.
+  const [url, setUrl] = React.useState(() => readCachedAvatarUrl());
   React.useEffect(() => {
     if (!signedIn || typeof getAccessToken !== "function") {
       setUrl("");
       return undefined;
     }
     let active = true;
+    const cached = readCachedAvatarUrl();
+    if (cached) setUrl(cached);
     const load = async () => {
       try {
         const token = await getAccessToken();
         if (!token || !active) return;
         const data = await getPublicVisibility({ accessToken: token });
-        if (active) setUrl(typeof data?.avatar_url === "string" ? data.avatar_url.trim() : "");
+        if (!active) return;
+        const next = typeof data?.avatar_url === "string" ? data.avatar_url.trim() : "";
+        setUrl(next);
+        writeCachedAvatarUrl(next);
       } catch {
-        /* a profile fetch must never break the header */
+        /* a profile fetch must never break the header; the cached value stays */
       }
     };
     void load();
-    const onUpdated = () => void load();
+    // Saving the field dispatches this with the new URL, so the chip swaps instantly
+    // and no revalidation round trip is needed; without a payload we re-read.
+    const onUpdated = (event) => {
+      const next = event?.detail?.avatarUrl;
+      if (typeof next === "string") {
+        setUrl(next.trim());
+        writeCachedAvatarUrl(next.trim());
+        return;
+      }
+      void load();
+    };
     globalThis.addEventListener?.("tt:profile-updated", onUpdated);
     return () => {
       active = false;

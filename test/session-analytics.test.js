@@ -10,6 +10,7 @@ const {
   scanClaudeSession,
   scanCodexSession,
   scanGrokSession,
+  scanDshSession,
   summarizeSessions,
   listSessionsForBrowser,
   resumeCommandFor,
@@ -1260,4 +1261,111 @@ test("a Codex session whose only model signal is session_meta attributes rather 
   assert.deepEqual(session.model_usage.map((row) => [row.model, row.total_tokens]), [["gpt-5.6-sol", 120]]);
   assert.equal(session.model_usage[0].model_attribution, "selected");
   assert.ok(session.cost_usd > 0, "an attributed model is priced; unknown is not");
+});
+
+
+// ── DeepSeek Harness (dsh) ──────────────────────────────────────────────────
+// Harness writes <dsh-home>/sessions/<project-key>/<session-id>/session.jsonl:
+// a `type: "session"` header line, then SessionEvent records. Usage rides on
+// assistant/message events and is disjoint per column, so no cache subtraction.
+
+function writeDshSessionFixture(home, {
+  projectKey = "--D-work-demo--",
+  sessionId = "session-3f1c8a52-6d1e-4a4b-9c2d-0e5f7a8b1c23",
+  cwd = "D:\\work\\demo",
+  title = "Wire up DeepSeek Harness sessions",
+  createdAt = Date.UTC(2026, 8, 16, 9, 0, 0),
+  events = [],
+} = {}) {
+  const sessionDir = path.join(home, ".dsh", "sessions", projectKey, sessionId);
+  fs.mkdirSync(sessionDir, { recursive: true });
+  const logPath = path.join(sessionDir, "session.jsonl");
+  const lines = [JSON.stringify({ type: "session", version: 0, id: sessionId, createdAt, cwd, delegationDepth: 0 })];
+  for (const event of events) lines.push(JSON.stringify(event));
+  fs.writeFileSync(logPath, lines.join("\n") + "\n");
+  return logPath;
+}
+
+function dshEvent(type, seq, time, data = {}) {
+  return { type, seq, time, data };
+}
+
+test("scanDshSession reads usage, model, turns and tool activity", async () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "tt-session-dsh-"));
+  try {
+    const startedAt = Date.UTC(2026, 8, 16, 9, 0, 0);
+    const logPath = writeDshSessionFixture(home, {
+      createdAt: startedAt,
+      events: [
+        dshEvent("turn/start", 1, startedAt + 1000, {}),
+        dshEvent("user/message", 2, startedAt + 1100, {}),
+        dshEvent("request/header", 3, startedAt + 1200, {
+          header: { config: { provider: "commandcode-goat", model: "deepseek/deepseek-v4.1-flash" } },
+        }),
+        dshEvent("assistant/message", 4, startedAt + 2000, {
+          usage: { inputTokens: 1000, outputTokens: 200, cacheReadTokens: 5000, totalTokens: 6200 },
+          message: { source: { model: "deepseek/deepseek-v4.1-flash" } },
+        }),
+        dshEvent("tool/call", 5, startedAt + 2100, { name: "run_code" }),
+        dshEvent("tool/call", 6, startedAt + 2200, { name: "write_file" }),
+        dshEvent("deliverables/presented", 7, startedAt + 2300, {}),
+        dshEvent("turn/end", 8, startedAt + 2400, {}),
+        dshEvent("turn/start", 9, startedAt + 3000, {}),
+        dshEvent("user/message", 10, startedAt + 3100, {}),
+        dshEvent("llm/retry", 11, startedAt + 3200, {}),
+        dshEvent("assistant/message", 12, startedAt + 3300, {
+          usage: { inputTokens: 200, outputTokens: 50, cacheReadTokens: 0, totalTokens: 250 },
+          message: { source: { model: "deepseek/deepseek-v4.1-flash" } },
+        }),
+        dshEvent("compaction/start", 13, startedAt + 3400, {}),
+        dshEvent("turn/end", 14, startedAt + 3500, {}),
+        dshEvent("session/title", 15, startedAt + 3600, { title: "Wire up DeepSeek Harness sessions" }),
+      ],
+    });
+
+    const row = await scanDshSession(logPath);
+    assert.equal(row.source, "dsh");
+    assert.equal(row.session_id, "session-3f1c8a52-6d1e-4a4b-9c2d-0e5f7a8b1c23");
+    assert.equal(row.model, "deepseek-v4.1-flash");
+    assert.equal(row.title, "Wire up DeepSeek Harness sessions");
+    assert.equal(row.project_ref, "D:\\work\\demo");
+    assert.equal(row.turns, 2);
+    // One turn ended with a presented deliverable, the other with a retry.
+    assert.equal(row.edit_turns, 1);
+    assert.equal(row.retry_turns, 1);
+    assert.equal(row.tool_calls, 2);
+    assert.equal(row.compaction_count, 1);
+    assert.equal(row.usage_events, 2);
+    // Disjoint columns map 1:1: input 1200, output 250, cache reads 5000.
+    assert.equal(row.tokens.input_tokens, 1200);
+    assert.equal(row.tokens.output_tokens, 250);
+    assert.equal(row.tokens.cached_input_tokens, 5000);
+    assert.equal(row.tokens.total_tokens, 6450);
+    assert.equal(row.started_at, new Date(startedAt).toISOString());
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("buildSessionAnalytics discovers dsh sessions from the injected home", async () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "tt-session-dsh-build-"));
+  try {
+    writeDshSessionFixture(home, {
+      events: [
+        dshEvent("turn/start", 1, Date.UTC(2026, 8, 16, 9, 0, 1), {}),
+        dshEvent("assistant/message", 2, Date.UTC(2026, 8, 16, 9, 0, 2), {
+          usage: { inputTokens: 10, outputTokens: 5, cacheReadTokens: 0, totalTokens: 15 },
+          message: { source: { model: "deepseek/deepseek-v4.1-flash" } },
+        }),
+        dshEvent("turn/end", 3, Date.UTC(2026, 8, 16, 9, 0, 3), {}),
+      ],
+    });
+
+    const rows = await buildSessionAnalytics({ home, force: true });
+    const dshRows = rows.filter((row) => row.source === "dsh");
+    assert.equal(dshRows.length, 1, "exactly the fixture session should be discovered");
+    assert.equal(dshRows[0].tokens.input_tokens, 10);
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
 });

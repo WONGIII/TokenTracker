@@ -28,7 +28,15 @@ const fsp = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const readline = require("node:readline");
-const { listClaudeProjectFiles, listRolloutFilesDeep, claudeMessageDedupKey } = require("./rollout");
+const {
+  listClaudeProjectFiles,
+  listRolloutFilesDeep,
+  claudeMessageDedupKey,
+  resolveDshSessionFiles,
+  readDshSessionText,
+  normalizeDshModelName,
+  dshUsageToTotals,
+} = require("./rollout");
 const { parseCodexRolloutFile } = require("./codex-rollout-parser");
 const { computeRowCost, getModelPricing } = require("./pricing");
 const { USD_TICKS_PER_USD, normalizeGrokUsage } = require("./grok-usage");
@@ -1219,15 +1227,181 @@ function groupCodexFiles(filePaths) {
   return ordered;
 }
 
+/**
+ * DeepSeek Harness (dsh) session scanner.
+ *
+ * Harness persists each agent session as an append-only JSONL log under
+ * `<dsh-home>/sessions/<project-key>/<session-id>/session.jsonl[.zstd]`: a
+ * `type: "session"` header line, then `SessionEvent` records carrying `type`,
+ * `seq`, `time` (epoch ms) and `data`. This reads that log passively, exactly like
+ * the usage parser does — no prompt bodies, no message text, no tool arguments;
+ * only the metadata the session browser shows.
+ *
+ * The artifacts are concatenated-frame zstd containers, so the text comes from
+ * rollout.js's frame-aware reader: a single zstd decompress call decodes only the
+ * first frame and silently drops every event after it.
+ */
+const DSH_SESSION_SCAN_MAX_BYTES = 64 * 1024 * 1024;
+
+async function scanDshSession(filePath) {
+  const text = await readDshSessionText(filePath, { maxOutputBytes: DSH_SESSION_SCAN_MAX_BYTES });
+  if (text == null) throw new Error("DeepSeek Harness session log could not be read");
+
+  const tokens = emptyTotals();
+  const bounds = emptyBounds();
+  const subagentTypes = new Map();
+  let sessionId = null;
+  let cwd = null;
+  let title = null;
+  let model = null;
+  let turns = 0;
+  let editTurns = 0;
+  let retryTurns = 0;
+  let toolCalls = 0;
+  let subagentCalls = 0;
+  let compactionCount = 0;
+  let usageEvents = 0;
+  let modelCalls = 0;
+  let currentTurnHadDeliverable = false;
+  let currentTurnHadRetry = false;
+
+  function closeTurn() {
+    if (currentTurnHadDeliverable) editTurns += 1;
+    if (currentTurnHadRetry) retryTurns += 1;
+    currentTurnHadDeliverable = false;
+    currentTurnHadRetry = false;
+  }
+
+  for (const line of text.split("\n")) {
+    if (!line) continue;
+    let event;
+    try { event = JSON.parse(line); } catch { continue; }
+    if (!event || typeof event !== "object") continue;
+    const timeMs = Number(event.time);
+    if (Number.isFinite(timeMs) && timeMs > 0) updateBounds(bounds, new Date(timeMs).toISOString());
+    const data = event.data && typeof event.data === "object" ? event.data : {};
+    switch (event.type) {
+      case "session":
+        if (typeof event.id === "string" && event.id) sessionId = event.id;
+        if (typeof event.cwd === "string" && event.cwd) cwd = event.cwd;
+        if (Number.isFinite(Number(event.createdAt))) {
+          updateBounds(bounds, new Date(Number(event.createdAt)).toISOString());
+        }
+        break;
+      case "turn/start":
+        closeTurn();
+        turns += 1;
+        break;
+      case "turn/end":
+        closeTurn();
+        break;
+      case "user/message":
+        // A turn can start without turn/start in older logs; count it either way.
+        if (turns === 0) turns += 1;
+        break;
+      case "assistant/message": {
+        usageEvents += 1;
+        modelCalls += 1;
+        const delta = dshUsageToTotals(data.usage);
+        if (delta) addTotals(tokens, delta);
+        const eventModel = normalizeDshModelName(
+          data.message && data.message.source ? data.message.source.model : null,
+        );
+        if (eventModel) model = eventModel;
+        break;
+      }
+      case "request/header": {
+        const config = data.header && data.header.config ? data.header.config : null;
+        const headerModel = normalizeDshModelName(config ? config.model : null);
+        if (headerModel && !model) model = headerModel;
+        break;
+      }
+      case "tool/call": {
+        toolCalls += 1;
+        const name = data.name || (data.tool && data.tool.name);
+        if (typeof name === "string" && name) subagentTypes.set(name, (subagentTypes.get(name) || 0) + 1);
+        break;
+      }
+      case "tool/ptc-dispatch":
+        subagentCalls += 1;
+        break;
+      case "deliverables/presented":
+        currentTurnHadDeliverable = true;
+        break;
+      case "llm/retry":
+        currentTurnHadRetry = true;
+        break;
+      case "compaction/start":
+        compactionCount += 1;
+        break;
+      case "session/title": {
+        const candidate = data.title || data.text || data.name || event.title;
+        const cleaned = cleanSessionTitle(candidate);
+        if (cleaned) title = cleaned;
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  closeTurn();
+
+  const projectCwd = cwd || path.dirname(path.dirname(path.dirname(filePath)));
+  return finalizeRecord({
+    version: SIDECAR_VERSION,
+    session_hash: sessionHash("dsh", sessionId || filePath),
+    session_id: sessionId,
+    title,
+    source: "dsh",
+    project_key: projectKey(cwd, filePath),
+    project_ref: cwd || null,
+    model: model || "unknown",
+    ...bounds,
+    turns,
+    edit_turns: editTurns,
+    retry_turns: retryTurns,
+    subagent_calls: subagentCalls,
+    subagent_types: Object.fromEntries([...subagentTypes.entries()].sort()),
+    tokens,
+    usage_events: usageEvents,
+    usage_precision: usageEvents > 0 ? "reported" : "unavailable",
+    usage_is_incomplete: false,
+    cost_is_partial: false,
+    cost_source: "model_pricing",
+    provider_cost_usd: null,
+    model_calls: modelCalls,
+    api_duration_ms: 0,
+    context_tokens_used: 0,
+    context_window_tokens: 0,
+    context_usage_percent: 0,
+    tool_calls: toolCalls,
+    tool_failures: 0,
+    error_count: 0,
+    compaction_count: compactionCount,
+    provenance: {
+      source: "local-session-log",
+      confidence: usageEvents > 0 ? "observed" : "partial",
+      retry_confidence: "inferred",
+      content_retained: false,
+      usage: "assistant/message.usage",
+      cost: "model_pricing",
+    },
+  });
+}
+
 async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const grokHome = resolveGrokHome(home);
   const claudeRoots = providerRoots(home, ".claude", env, deps);
   const codexRoots = providerRoots(home, ".codex", env, deps);
-  const [claudeGroups, codexGroups, archivedGroups, grok] = await Promise.all([
+  const [claudeGroups, codexGroups, archivedGroups, grok, dsh] = await Promise.all([
     Promise.all(claudeRoots.map((r) => listClaudeProjectFiles(path.join(r, "projects")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "sessions")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "archived_sessions")))),
     listGrokSessionFiles(path.join(grokHome, "sessions")),
+    // The harness home must come from the caller's `home`, not os.homedir(): tests
+    // inject a temporary home, and without this they would discover the
+    // developer's real ~/.dsh sessions (309 of them, which broke three tests).
+    resolveDshSessionFiles(env, { ...deps, nativeHome: path.join(home, ".dsh") }),
   ]);
   const allClaude = groupClaudeFilesAcrossRoots(claudeGroups);
   const codex = [...new Set(codexGroups.flat())];
@@ -1239,7 +1413,7 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const claude = allClaude.filter((filePaths) => !filePaths.some((filePath) => filePath
     .split(path.sep)
     .some((segment) => segment.endsWith(CLAUDE_MEM_OBSERVER_PROJECT_SUFFIX))));
-  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok };
+  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok, dsh };
 }
 
 function filesSignature(files) {
@@ -1379,6 +1553,7 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
     ...discovered.grok,
     ...discovered.grok.map(grokSummaryPathFor),
     ...discovered.grok.map(grokSignalsPathFor),
+    ...discovered.dsh,
   ]);
   if (!force && previousMeta?.version === SIDECAR_VERSION && previousMeta.signature === signature) {
     await writeAtomic(metaPath, `${JSON.stringify({ ...previousMeta, checked_at: new Date().toISOString() })}\n`);
@@ -1400,6 +1575,7 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
     ...discovered.claude.map((filePaths) => ({ source: "claude", filePath: filePaths, scan: scanClaudeSession })),
     ...discovered.codex.map((filePaths) => ({ source: "codex", filePath: filePaths, scan: scanCodexSession })),
     ...discovered.grok.map((filePath) => ({ source: "grok", filePath, scan: scanGrokSession })),
+    ...discovered.dsh.map((filePath) => ({ source: "dsh", filePath, scan: scanDshSession })),
   ];
   // Files we could not turn into a row (permission denied, half-written line,
   // vanished mid-scan). Swallowing these silently made sessions disappear with
@@ -2000,6 +2176,7 @@ module.exports = {
   scanClaudeSession,
   scanCodexSession,
   scanGrokSession,
+  scanDshSession,
   buildSessionAnalytics,
   summarizeSessions,
   listSessionsForBrowser,

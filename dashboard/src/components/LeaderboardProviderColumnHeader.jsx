@@ -5,6 +5,9 @@ import React from "react";
  * Invert them in dark mode so the icon stays visible on a dark background.
  */
 const INVERT_IN_DARK = new Set([
+  // DeepSeek Harness ships as the same monochrome mark ProviderIcon draws in
+  // currentColor; the file variant is solid black, so dark mode has to invert it.
+  "/brand-logos/deepseek-harness.svg",
   "/brand-logos/cursor.svg",
   "/brand-logos/kimi.svg",
   "/brand-logos/kiro.svg",

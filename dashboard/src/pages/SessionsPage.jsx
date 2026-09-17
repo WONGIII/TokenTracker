@@ -32,6 +32,7 @@ const SOURCE_FILTERS = [
   { id: "claude", label: () => "Claude Code" },
   { id: "codex", label: () => "Codex" },
   { id: "grok", label: () => "Grok" },
+  { id: "dsh", label: () => "DeepSeek Harness" },
 ];
 
 const DATE_RANGES = [
