@@ -1687,8 +1687,8 @@ settings.account.avatarInvalid,ui,SettingsPage,AccountSectionParts,avatarInvalid
 achievements.badge.oracle.name,dashboard,*,AchievementsSection,oracle_name,"Oracle",,active
 achievements.badge.oracle.desc,dashboard,*,BadgeDetailModal,oracle_desc,"You burn API invoices as incense and prompts as prayers, asking the god in the cloud. It answers in tokens, and you pay in balance. Every call is an expensive summoning; every reply is the god signing your bill.
 
-Unlocks by spending tokens on gpt-6-astra.",,active
+Unlocks by spending Tokens on GPT-6 Astra.",,active
 achievements.badge.mortal_frame.name,dashboard,*,AchievementsSection,mortal_frame_name,"Mortal Frame, Rival to Gods",,active
 achievements.badge.mortal_frame.desc,dashboard,*,BadgeDetailModal,mortal_frame_desc,"They say the gods sit above and mortals crawl below, that wisdom carries a price tag and common folk deserve only a perfunctory echo. You tried anyway. You asked the one with no divine name — no temple, no hymns, no outrageous price; it simply opened its eyes and handed the answer back. Not lofty, but earnest; no thunder, just a lamp lit. And you understood: matching the gods was never about it becoming one. It was about you no longer having to kneel. So you wrote it down: a mortal frame, rival to gods.
 
-Unlocks by spending tokens on any DeepSeek model.",,active
+Unlocks by spending Tokens on any DeepSeek model.",,active
