@@ -29,10 +29,9 @@ Upstream is a finished product; this is my personal build of it. Everything belo
 | 🧩 **Several accounts per adapter** | The Limits page can track more than one login per provider, each with its own key and plan. See below. |
 | 💰 **Pinned model prices** | DeepSeek V4.1 Flash (and its aliases) are priced at the V4 Flash rates instead of $0, including the time-of-use discount. |
 | 📉 **Two cost bugs fixed** | The detail modal used to bill every DeepSeek token at the peak rate (~1.7× the dashboard headline) because it priced model aggregates instead of rows. |
-| 🐟 **DeepSeek Harness counted on its own** | Upstream folded `dsh` into "Other" — the leaderboard gives it a column with its icon, the profile modal lists it as its own provider, and the **sessions view** discovers it (308 of 392 sessions on this box) behind its own filter. |
+| 🐟 **DeepSeek Harness counted on its own** | Upstream folded `dsh` into "Other" — the leaderboard gives it a column with its icon, the profile modal lists it as its own provider, and the **sessions view** discovers it behind its own filter. |
 | 🔄 **One-shot full upload on login** | After switching account or backend, the first sync sends the **entire** local queue in one go instead of crawling 1000 rows every 15 minutes; increments follow. |
 | 🖼️ **Avatar from an image URL** | No OAuth means no provider avatar, so you paste an image link in Settings and the header, sidebar and leaderboard all use it. The link is cached: reloads are instant, and saving a new one swaps it immediately. |
-| 🔧 **A batch of features that never worked** | Achievements, profile likes, the leaderboard rollups and the community stats never actually ran in this codebase — missing tables, missing functions, no schedule, or a rollup pipeline with no data in it. All fixed, and recorded as migrations. |
 | 🧹 **Clear the local cache** | Settings → Account has a one-click clear for cached leaderboard periods, community stats and prefetched data; it reloads afterwards. |
 
 ---
