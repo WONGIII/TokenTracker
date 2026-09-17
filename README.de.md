@@ -29,9 +29,10 @@ Das Original ist ein fertiges Produkt; dies ist mein persönlicher Build davon. 
 | 🧩 **Mehrere Konten pro Adapter** | Die Limits-Seite kann mehr als einen Login pro Anbieter verfolgen, jeweils mit eigenem Key und Tarif. |
 | 💰 **Ergänzte Modellpreise** | DeepSeek V4.1 Flash und seine Aliase werden zu den V4-Flash-Preisen berechnet statt mit $0 — inklusive Off-Peak-Rabatt. |
 | 📉 **Zwei Kostenfehler behoben** | Das Detail-Modal berechnete Modell-Aggregate statt Einzelzeilen und berechnete damit jeden DeepSeek-Token zum Peak-Preis (~1,7× der Headline). |
-| 🐟 **DeepSeek Harness separat gezählt** | Das Original schob `dsh` unter "Other". Die Rangliste hat jetzt eine eigene Spalte mit Marken-Icon, und das Profil-Fenster listet den Anbieter separat. |
+| 🐟 **DeepSeek Harness separat gezählt** | Das Original schob `dsh` unter "Other". Die Rangliste hat eine eigene Spalte mit Icon, das Profil-Fenster listet den Anbieter separat, und die **Sitzungsliste** erfasst ihn (308 von 392 Sitzungen hier) mit eigenem Filter. |
 | 🔄 **Vollständiger Upload beim Login** | Nach einem Kontowechsel schickt die erste Synchronisierung die **gesamte** lokale Warteschlange auf einmal, statt alle 15 Minuten 1000 Zeilen; danach nur noch Deltas. |
-| 🖼️ **Avatar per Bild-URL** | Ohne OAuth gibt es keinen Anbieter-Avatar: In den Einstellungen fügst du einen Bildlink ein, den Kopfzeile, Seitenleiste und Rangliste gemeinsam nutzen. |
+| 🖼️ **Avatar per Bild-URL** | Ohne OAuth gibt es keinen Anbieter-Avatar: In den Einstellungen fügst du einen Bildlink ein, den Kopfzeile, Seitenleiste und Rangliste nutzen. Der Link wird zwischengespeichert: Neuladen ist sofort, Änderungen greifen unmittelbar. |
+| 🔧 **Eine Reihe nie funktionierender Funktionen** | Erfolge, Profil-Likes, die Ranglisten-Rollups und die Community-Statistiken haben in diesem Code nie funktioniert — fehlende Tabellen, fehlende Funktionen, kein Zeitplan oder eine Rollup-Pipeline ohne Daten. Alles behoben und als Migrations festgehalten. |
 | 🧹 **Lokalen Cache leeren** | Einstellungen → Konto hat einen Ein-Klick-Knopf für zwischengespeicherte Ranglisten-Zeiträume, Community-Statistiken und Vorablade-Daten; danach lädt die Seite neu. |
 
 ---
