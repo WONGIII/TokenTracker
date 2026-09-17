@@ -173,8 +173,16 @@ export default async function (req: Request): Promise<Response> {
   for (const r of states) stateMap.set(r.source + "|" + r.session_id, r);
   const stateRows = Array.from(stateMap.values());
 
-  if ((!Array.isArray(buckets) || buckets.length === 0) && stateRows.length === 0) {
-    return json({ error: "No usage buckets provided" }, 400);
+  // An empty batch is a legitimate request: the client sends one to ask which account
+  // its device token writes as, without storing anything. That probe runs whenever a
+  // sync had nothing to upload, and rejecting it with 400 meant the answer never
+  // arrived — so a re-login onto a different account went unnoticed and the endpoint
+  // logged a 400 on every idle sync.
+  if (Array.isArray(buckets) && buckets.length > 0 && stateRows.length === 0) {
+    // fall through: real rows to write
+  }
+  if (!Array.isArray(buckets)) {
+    return json({ error: "Invalid hourly payload" }, 400);
   }
   if (buckets.length > 500) {
     return json({ error: "Too many buckets (max 500)" }, 400);

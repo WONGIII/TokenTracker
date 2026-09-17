@@ -3148,8 +3148,22 @@ async function cmdSync(argv, context = {}) {
     // re-login re-issues the device token, and the new token may belong to a different
     // account that has to receive the whole history.
     const preUploadState = (await readJson(queueStatePath)) || {};
+    // Only a missing record counts as unverified. Device tokens are re-issued on a
+    // short cadence — the desktop shell mints a fresh one every few minutes — so
+    // comparing them never settles and reported "unverified" on every sync, which
+    // made the probe fire forever. Once anything has been uploaded the drain's own
+    // user_id keeps the record current, and a re-login onto another account is caught
+    // by the comparison further down.
+    // Device tokens are re-issued on a short cadence — the desktop shell mints a fresh
+    // one every few minutes — so comparing tokens never settles: it reported
+    // "unverified" on every single sync. Probe instead when nothing is recorded yet,
+    // or when the last confirmation has aged out; a re-login onto another account is
+    // then noticed within the window rather than never.
+    const IDENTITY_RECHECK_MS = 15 * 60_000;
+    const lastIdentityCheckMs = Number(preUploadState.identityCheckedAtMs || 0);
     const identityUnverified = !preUploadState.syncedUserId
-      || preUploadState.syncedDeviceToken !== runtime.deviceToken;
+      || !lastIdentityCheckMs
+      || Date.now() - lastIdentityCheckMs > IDENTITY_RECHECK_MS;
     // Only a "nothing to send" decision may be widened. A throttled or backed-off
     // upload must stay throttled: the probe is a convenience, not a way around the
     // failure backoff.
@@ -3209,6 +3223,14 @@ async function cmdSync(argv, context = {}) {
         // the whole queue again. The cloud then holds exactly this device's data,
         // under the account that is actually signed in.
         const ingestUserId = typeof uploadResult?.userId === "string" ? uploadResult.userId : "";
+        if (ingestUserId && uploadResult.batches > 0) {
+          // A normal upload named the account: refresh the record so the probe window
+          // restarts from this confirmation.
+          const stateSeen = (await readJson(queueStatePath)) || {};
+          if (stateSeen.identityCheckedAtMs !== undefined || stateSeen.syncedUserId) {
+            await writeJson(queueStatePath, { ...stateSeen, identityCheckedAtMs: Date.now() });
+          }
+        }
         if (ingestUserId) {
           const stateNow = (await readJson(queueStatePath)) || {};
           const knownUserId = typeof stateNow.syncedUserId === "string" ? stateNow.syncedUserId : "";
@@ -3220,6 +3242,7 @@ async function cmdSync(argv, context = {}) {
               ...stateNow,
               offset: hadUploaded ? 0 : Number(stateNow.offset || 0),
               syncedUserId: ingestUserId,
+              identityCheckedAtMs: Date.now(),
               syncedDeviceToken: runtime.deviceToken,
               updatedAt: new Date().toISOString(),
             });
