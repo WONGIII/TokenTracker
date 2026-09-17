@@ -30,8 +30,14 @@ function queueLines(count) {
 
 async function withTempHome(fn) {
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "tt-full-resync-"));
-  const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, fetch: global.fetch };
+  const saved = {
+    HOME: process.env.HOME,
+    USERPROFILE: process.env.USERPROFILE,
+    DEVICE_TOKEN: process.env.TOKENTRACKER_DEVICE_TOKEN,
+    fetch: global.fetch,
+  };
   process.env.HOME = home;
+  process.env.TOKENTRACKER_DEVICE_TOKEN = "test-device-token";
   process.env.USERPROFILE = home;
   try {
     const trackerDir = path.join(home, ".tokentracker", "tracker");
@@ -46,6 +52,8 @@ async function withTempHome(fn) {
   } finally {
     process.env.HOME = saved.HOME;
     process.env.USERPROFILE = saved.USERPROFILE;
+    if (saved.DEVICE_TOKEN === undefined) delete process.env.TOKENTRACKER_DEVICE_TOKEN;
+    else process.env.TOKENTRACKER_DEVICE_TOKEN = saved.DEVICE_TOKEN;
     global.fetch = saved.fetch;
     await fs.rm(home, { recursive: true, force: true });
   }
@@ -93,15 +101,17 @@ test("a token that writes as a different account re-uploads the whole queue", as
   });
 });
 
-test("the auto-upload caps no longer stop a multi-batch queue", () => {
-  // The caps used to be 5/5 — 1000 queue lines — which is what made a device with
-  // more history than that need several syncs to finish.
+test("the background caps stay bounded while the full resync gets its own budget", () => {
+  // A background publication must not spend an unbounded tick on a huge queue, so it
+  // keeps the auto-upload decision's 5/5 caps. The unbounded case is the resync after
+  // an identity change, which passes an explicit budget — the property the first test
+  // above depends on.
   const source = require("node:fs").readFileSync(
     path.join(__dirname, "..", "src", "commands", "sync.js"),
     "utf8",
   );
-  assert.doesNotMatch(source, /maxBatchesSmall: 5,/);
-  assert.doesNotMatch(source, /maxBatchesLarge: 5,/);
-  assert.match(source, /maxBatchesLarge: 1000,/);
-  assert.match(source, /maxBatches = 500,/);
+  assert.match(source, /maxBatchesSmall: 5,/);
+  assert.match(source, /maxBatchesLarge: 5,/);
+  assert.match(source, /const drainWithToken = \(deviceToken, budgetOverride\) =>/);
+  assert.match(source, /drainWithToken\(successfulDeviceToken, 1000\)/);
 });

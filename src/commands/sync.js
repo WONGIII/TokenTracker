@@ -3138,8 +3138,8 @@ async function cmdSync(argv, context = {}) {
           // than that needed several syncs to finish, which reads as "it never
           // syncs everything". A routine sync stays modest; a real backlog drains
           // in a single pass (the loop still stops at the end of the file).
-          maxBatchesSmall: 20,
-          maxBatchesLarge: 1000,
+          maxBatchesSmall: 5,
+          maxBatchesLarge: 5,
         },
       });
     }
@@ -3159,14 +3159,14 @@ async function cmdSync(argv, context = {}) {
       }
       try {
         let successfulDeviceToken = runtime.deviceToken;
-        const drainWithToken = (deviceToken) =>
+        const drainWithToken = (deviceToken, budgetOverride) =>
           drainQueueToCloud({
             baseUrl: runtime.baseUrl,
             anonKey: runtime.anonKey,
             deviceToken,
             queuePath,
             queueStatePath,
-            maxBatches: opts.drain ? 1000 : (autoUploadDecision?.maxBatches || 500),
+            maxBatches: budgetOverride ?? (opts.drain ? 1000 : (autoUploadDecision?.maxBatches || 5)),
             batchSize: autoUploadDecision?.batchSize || 200,
           });
         try {
@@ -3211,7 +3211,9 @@ async function cmdSync(argv, context = {}) {
               updatedAt: new Date().toISOString(),
             });
             if (hadUploaded) {
-              const resync = await drainWithToken(successfulDeviceToken);
+              // A whole history in one call: this is the case the bound above must
+              // not truncate.
+              const resync = await drainWithToken(successfulDeviceToken, 1000);
               uploadResult = { ...resync, userId: ingestUserId };
             }
           }

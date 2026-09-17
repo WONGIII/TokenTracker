@@ -66,7 +66,8 @@ function parseCsv(raw) {
 test("LandingPage includes screenshot image and copy alt key", () => {
   const src = read("dashboard/src/ui/marketing/MarketingLanding.jsx");
   assert.match(src, /landing\.screenshot\.alt/);
-  assert.match(src, /dashboard-dark\.png/);
+  // FORK: the landing shows this fork's own capture, not upstream's.
+  assert.match(src, /zzh-dashboard\.png/);
 });
 
 test("copy registry includes landing screenshot alt", () => {

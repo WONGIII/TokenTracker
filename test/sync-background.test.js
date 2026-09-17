@@ -142,6 +142,7 @@ async function withTempSyncEnv(fn) {
     OPENCODE_HOME: process.env.OPENCODE_HOME,
     XDG_DATA_HOME: process.env.XDG_DATA_HOME,
     TOKENTRACKER_REASONIX_HOME: process.env.TOKENTRACKER_REASONIX_HOME,
+    TOKENTRACKER_DSH_HOME: process.env.TOKENTRACKER_DSH_HOME,
     REASONIX_STATE_HOME: process.env.REASONIX_STATE_HOME,
     TOKENTRACKER_DEVICE_TOKEN: process.env.TOKENTRACKER_DEVICE_TOKEN,
     TOKENTRACKER_INSFORGE_BASE_URL: process.env.TOKENTRACKER_INSFORGE_BASE_URL,
@@ -162,6 +163,9 @@ async function withTempSyncEnv(fn) {
     process.env.XDG_DATA_HOME = path.join(home, ".local", "share");
     process.env.TOKENTRACKER_OPENCLAW_HOME = path.join(home, ".openclaw");
     delete process.env.TOKENTRACKER_REASONIX_HOME;
+    // DeepSeek Harness: without an explicit home the resolver probes WSL on
+    // Windows and reads the developer's real ~/.dsh sessions.
+    process.env.TOKENTRACKER_DSH_HOME = path.join(home, ".dsh");
     delete process.env.REASONIX_STATE_HOME;
     delete process.env.TOKENTRACKER_DEVICE_TOKEN;
     delete process.env.TOKENTRACKER_INSFORGE_BASE_URL;
