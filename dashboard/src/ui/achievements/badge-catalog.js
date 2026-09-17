@@ -18,6 +18,8 @@ import {
   MoonStar,
   Rocket,
   ShieldCheck,
+  Sparkles,
+  Sunrise,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -38,6 +40,10 @@ export const BADGE_CATALOG = [
   { id: "multitool", scope: "cloud", icon: Blocks, format: "count", art: "/achievements/multitool.png" },
   { id: "podium", scope: "cloud", icon: Medal, format: "rank", art: "/achievements/podium.png" },
   { id: "veteran", scope: "cloud", icon: ShieldCheck, format: "days", art: "/achievements/veteran.png" },
+  // FORK: two one-shot achievements. bronze = 1 upstream-side, so tier 1 means "did it
+  // once" and the higher tiers are out of reach — the badge is deliberately single-tier.
+  { id: "oracle", scope: "cloud", icon: Sparkles, format: "count", art: "/achievements/oracle.png" },
+  { id: "mortal_frame", scope: "cloud", icon: Sunrise, format: "count", art: "/achievements/mortal-frame.png" },
   { id: "project_hopper", scope: "local", icon: FolderGit2, format: "count", art: "/achievements/project-hopper.png" },
   { id: "project_devotion", scope: "local", icon: Heart, format: "tokens", art: "/achievements/project-devotion.png" },
   { id: "night_owl", scope: "local", icon: MoonStar, format: "count", art: "/achievements/night-owl.png" },

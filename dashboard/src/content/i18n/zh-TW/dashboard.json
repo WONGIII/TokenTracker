@@ -648,5 +648,9 @@
   "subscriptions.form.provider": "關聯工具",
   "subscriptions.form.provider_required": "請選擇關聯的工具",
   "subscriptions.form.provider_taken": "該工具已有訂閱，請編輯現有記錄",
-  "subscriptions.form.provider_taken_suffix": "（已有訂閱）"
+  "subscriptions.form.provider_taken_suffix": "（已有訂閱）",
+  "achievements.badge.oracle.name": "神諭",
+  "achievements.badge.oracle.desc": "你以 API 帳單為香火，以 Prompt 為禱詞，向雲端之神求問。神以 Token 降下神諭，你以餘額獻上祭品。每一次呼叫，都是一次昂貴的降神；每一次回答，都是神在帳單上簽名。",
+  "achievements.badge.mortal_frame.name": "凡人之軀，比肩神明",
+  "achievements.badge.mortal_frame.desc": "有人說，神在天上，人在泥裡，智慧是標了價的奢侈品，凡人只配得到敷衍的回音。可你偏要試。你向那個沒有神號的「凡人」發出請求——它沒有殿堂，沒有頌歌，也不漫天要價；它只是睜開眼，把答案遞回。它不夠高高在上，卻足夠認真；它沒有降下雷霆，卻點亮了一盞燈。你忽然明白，比肩神明不是它成了神，而是你不再需要跪著求神。於是寫下：凡人之軀，比肩神明。"
 }
