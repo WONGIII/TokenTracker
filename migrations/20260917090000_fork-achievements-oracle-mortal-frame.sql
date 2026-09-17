@@ -1,18 +1,21 @@
--- Two fork achievements: "Oracle" (ever called gpt-6-astra) and "Mortal Frame,
--- Rival to Gods" (ever called any DeepSeek model).
+-- Two fork achievements: "Oracle" (tokens spent on gpt-6-astra) and
+-- "Mortal Frame, Rival to Gods" (tokens spent on any DeepSeek model).
 --
--- Both are one-shot: the catalog thresholds are bronze = 1 with the higher tiers set
--- out of reach, because the metric is "did this account ever do it", not "how much".
--- The metrics come from the usm CTE — (user, source, model, day) usage — as filtered
--- row counts, and the artwork lives in dashboard/public/achievements/.
+-- The metric is a TOKEN SUM over the matching models, not a call count, and the tiers
+-- ramp by a factor of ten with the top tier at 10 billion tokens:
+--
+--     bronze 10M   silver 100M   gold 1B   diamond 10B
+--
+-- The sums come from the usm CTE — (user, source, model, day) usage — so they cover the
+-- same history as every other badge. Artwork lives in dashboard/public/achievements/.
 --
 -- Everything here is idempotent.
 
 insert into tokentracker_badge_catalog
     (badge_id, sort_order, lower_is_better, bronze, silver, gold, diamond)
 values
-    ('oracle',       13, false, 1, 1e15, 1e15, 1e15),
-    ('mortal_frame', 14, false, 1, 1e15, 1e15, 1e15)
+    ('oracle',       13, false, 1e7, 1e8, 1e9, 1e10),
+    ('mortal_frame', 14, false, 1e7, 1e8, 1e9, 1e10)
 on conflict (badge_id) do update set
     sort_order      = excluded.sort_order,
     lower_is_better = excluded.lower_is_better,
@@ -176,8 +179,8 @@ BEGIN
   ),
   signals AS (
     SELECT user_id,
-           COUNT(*) FILTER (WHERE model ILIKE '%astra%')    AS astra_calls,
-           COUNT(*) FILTER (WHERE model ILIKE '%deepseek%') AS deepseek_calls
+           COALESCE(SUM(tokens) FILTER (WHERE model ILIKE '%astra%'), 0)    AS astra_tokens,
+           COALESCE(SUM(tokens) FILTER (WHERE model ILIKE '%deepseek%'), 0) AS deepseek_tokens
     FROM usm
     GROUP BY user_id
   ),
@@ -190,7 +193,7 @@ BEGIN
            v.models, v.sources, f.favorite_model,
            t.early_models,
            r.rank AS current_rank,
-           sg.astra_calls, sg.deepseek_calls
+           sg.astra_tokens, sg.deepseek_tokens
     FROM base b
     LEFT JOIN best_day bd USING (user_id)
     LEFT JOIN streaks  s  USING (user_id)
@@ -224,8 +227,8 @@ BEGIN
     ('multitool',       f.sources::numeric,        '{}'::jsonb),
     ('podium',          f.current_rank::numeric,   '{}'::jsonb),
     ('veteran',         f.veteran_days::numeric,   jsonb_build_object('first_day', f.first_day)),
-    ('oracle',          f.astra_calls::numeric,    '{}'::jsonb),
-    ('mortal_frame',    f.deepseek_calls::numeric, '{}'::jsonb)
+    ('oracle',          f.astra_tokens::numeric,    '{}'::jsonb),
+    ('mortal_frame',    f.deepseek_tokens::numeric, '{}'::jsonb)
   ) AS m(badge_id, val, meta)
   JOIN tokentracker_badge_catalog c ON c.badge_id = m.badge_id
   CROSS JOIN LATERAL (
