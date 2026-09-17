@@ -64,3 +64,17 @@ end
 $fn$;
 
 notify pgrst, 'reload schema';
+
+-- Belt and braces. The ingest repairs at upload time and the refresh repairs every
+-- fifteen minutes, but a per-minute job means a new account's history cannot stay
+-- unaggregated for more than a minute no matter which path missed it. The detector is a
+-- single grouped aggregate ¡ª sub-millisecond at current volume.
+select cron.unschedule('rollup-self-heal')
+ where exists (select 1 from cron.job where jobname = 'rollup-self-heal');
+
+select cron.schedule(
+  'rollup-self-heal',
+  '* * * * *',
+  $$select public.leaderboard_rollup_repair_if_needed()$$
+);
+

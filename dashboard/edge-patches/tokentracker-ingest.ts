@@ -248,6 +248,48 @@ export default async function (req: Request): Promise<Response> {
     if (stateErr) return json({ error: stateErr.message }, 500);
   }
 
+  // Late history. A first sync uploads a back-catalogue whose dates sit below the rollup
+  // watermark, and the incremental rollup never looks back — so that account's leaderboard
+  // entry would read ~0 until a scheduled repair came around. When a batch actually
+  // reaches back past the watermark, rebuild here instead: the write completes with the
+  // rollup already correct, so the very next read of the leaderboard is complete.
+  // Ordinary incremental syncs are entirely above the watermark and never trip this.
+  try {
+    const oldest = mappedRows.reduce<string | null>(
+      (min, row) => {
+        const at = typeof row.hour_start === "string" ? row.hour_start : null;
+        if (!at) return min;
+        return !min || at < min ? at : min;
+      },
+      null,
+    );
+    if (oldest) {
+      const { data: metaRows } = await client.database
+        .from("tokentracker_leaderboard_rollup_meta_v2")
+        .select("through")
+        .eq("id", 1)
+        .limit(1);
+      const through = Array.isArray(metaRows) && typeof metaRows[0]?.through === "string"
+        ? (metaRows[0].through as string)
+        : null;
+      if (through && oldest < through) {
+        const { error: repairErr } = await client.database.rpc(
+          "leaderboard_rollup_repair_if_needed",
+        );
+        if (repairErr) {
+          console.error("[ingest] rollup repair failed:", repairErr.message);
+        }
+      }
+    }
+  } catch (error) {
+    // Never fail an upload over this: the data is already stored and the scheduled
+    // refresh repairs it regardless.
+    console.error(
+      "[ingest] rollup repair skipped:",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+
   // The client needs to know WHICH account this device token writes as. A token
   // re-issued after a re-login can belong to a different user, and a client that
   // keeps assuming the old identity files fresh history under the wrong account
