@@ -4,7 +4,10 @@
 -- The metric is a TOKEN SUM over the matching models, not a call count, and the tiers
 -- ramp by a factor of ten with the top tier at 10 billion tokens:
 --
---     bronze 10M   silver 100M   gold 1B   diamond 10B
+--     bronze 1 token   silver 100M   gold 1B   diamond 10B
+--
+-- Bronze is deliberately a single token: the achievement is about having done the thing
+-- at all, and the ladder above it is the reward for volume.
 --
 -- The sums come from the usm CTE — (user, source, model, day) usage — so they cover the
 -- same history as every other badge. Artwork lives in dashboard/public/achievements/.
@@ -14,8 +17,8 @@
 insert into tokentracker_badge_catalog
     (badge_id, sort_order, lower_is_better, bronze, silver, gold, diamond)
 values
-    ('oracle',       13, false, 1e7, 1e8, 1e9, 1e10),
-    ('mortal_frame', 14, false, 1e7, 1e8, 1e9, 1e10)
+    ('oracle',       13, false, 1, 1e8, 1e9, 1e10),
+    ('mortal_frame', 14, false, 1, 1e8, 1e9, 1e10)
 on conflict (badge_id) do update set
     sort_order      = excluded.sort_order,
     lower_is_better = excluded.lower_is_better,
