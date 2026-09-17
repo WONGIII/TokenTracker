@@ -52,6 +52,17 @@
 
 ---
 
+## 이 fork가 추가한 두 가지 업적
+
+둘 다 **해당 모델에서 쓴 Token 합계**로 결정됩니다(브론즈 1 Token / 실버 1억 / 골드 10억 / 다이아 100억, 매시간 재계산).
+
+| <img src="./docs/screenshots/zzh-badge-oracle.png" alt="오라클 (Oracle)" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="필부의 몸, 신에 비견되다 (Mortal Frame)" width="150" /> |
+|---|---|
+| **오라클 (Oracle)** | **필부의 몸, 신에 비견되다 (Mortal Frame)** |
+| GPT-6 Astra에서 Token을 소비합니다. | 모든 DeepSeek 모델에서 Token을 소비합니다. |
+
+---
+
 ## 어댑터 하나에 여러 계정
 
 기존에는 프로바이더마다 **계정 하나**(로컬 CLI가 로그인한 그 계정)만 추적했습니다. 회사 계정과 개인 계정을 함께 쓰거나, 플랜이 다른 API 키 두 개를 쓸 때는 부족합니다.

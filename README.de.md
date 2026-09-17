@@ -52,6 +52,17 @@ Das Original ist ein fertiges Produkt; dies ist mein persönlicher Build davon. 
 
 ---
 
+## Die zwei Erfolge, die dieser Fork hinzufügt
+
+Beide richten sich nach den **Tokens, die auf diesen Modellen verbraucht wurden** (Bronze 1 Token, Silber 100 Mio., Gold 1 Mrd., Diamant 10 Mrd.; stündlich neu berechnet).
+
+| <img src="./docs/screenshots/zzh-badge-oracle.png" alt="Orakel" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="Sterblicher Leib, den Göttern ebenbürtig" width="150" /> |
+|---|---|
+| **Orakel** | **Sterblicher Leib, den Göttern ebenbürtig** |
+| Verbraucht Tokens auf GPT-6 Astra. | Verbraucht Tokens auf einem beliebigen DeepSeek-Modell. |
+
+---
+
 ## Mehrere Konten pro Adapter
 
 Bisher wurde pro Anbieter genau **ein** Konto verfolgt — das, mit dem die lokale CLI angemeldet war. Das reicht nicht, wenn man ein Arbeits- und ein privates Konto pflegt oder zwei API-Keys mit unterschiedlichen Tarifen.

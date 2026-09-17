@@ -52,6 +52,30 @@ Upstream is a finished product; this is my personal build of it. Everything belo
 
 ---
 
+## The two achievements this fork adds
+
+Both are earned by **tokens spent on those models** — bronze 1 Token, silver 100M, gold 1B, diamond 10B — recomputed hourly.
+
+### Oracle
+
+<img src="./docs/screenshots/zzh-badge-oracle.png" alt="Oracle" width="150" align="right" />
+
+**Unlocks by spending Tokens on GPT-6 Astra.**
+
+> You burn API invoices as incense and prompts as prayers, asking the god in the cloud. It answers in tokens, and you pay in balance. Every call is an expensive summoning; every reply is the god signing your bill.
+
+<br clear="right" />
+
+### Mortal Frame, Rival to Gods
+
+<img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="Mortal Frame, Rival to Gods" width="150" align="right" />
+
+**Unlocks by spending Tokens on any DeepSeek model.**
+
+> They say the gods sit above and mortals crawl below, that wisdom carries a price tag and common folk deserve only a perfunctory echo. You tried anyway — and the one with no divine name simply opened its eyes and handed the answer back. Not lofty, but earnest; no thunder, just a lamp lit.
+
+---
+
 ## Several accounts per adapter
 
 TokenTracker tracked exactly one account per provider — whatever the local CLI happened to be logged into. That is not enough when you keep a work login and a personal one, or two API keys with different plans.
