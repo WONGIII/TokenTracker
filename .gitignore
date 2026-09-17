@@ -149,3 +149,6 @@ TokenTrackerLinux/packaging/arch/tokentracker-linux/*.log
 # PowerShell mangled it, the pathspec silently matched nothing, and a copy of
 # the pricing directory ended up committed.
 pricing - 副本/
+# Local snapshot and side-by-side build workspaces (never part of the repo).
+_bak-*/
+_variants/
