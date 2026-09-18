@@ -74,6 +74,15 @@ Both are earned by **tokens spent on those models** — bronze 1 Token, silver 1
 
 > They say the gods sit above and mortals crawl below, that wisdom carries a price tag and common folk deserve only a perfunctory echo. You tried anyway — and the one with no divine name simply opened its eyes and handed the answer back. Not lofty, but earnest; no thunder, just a lamp lit.
 
+
+### The Root of All Evil
+
+<img src="./docs/screenshots/zzh-badge-root-of-all-evil.png" alt="The Root of All Evil" width="150" align="right" />
+
+**Unlocks by spending Tokens on the GPT-3.5 series.**
+
+> Before the dawn of the compute era it arrived quietly — no thunder, no oracle, just a gentle hello. That greeting tore the hardware market off its axis: it lit the spark under graphics cards, woke the memory frenzy, and burned solid-state drives to ash in the blaze of demand.
+
 ---
 
 ## Several accounts per adapter

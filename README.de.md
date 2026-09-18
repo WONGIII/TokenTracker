@@ -61,6 +61,13 @@ Beide richten sich nach den **Tokens, die auf diesen Modellen verbraucht wurden*
 | **Orakel** | **Sterblicher Leib, den Göttern ebenbürtig** |
 | Verbraucht Tokens auf GPT-6 Astra. | Verbraucht Tokens auf einem beliebigen DeepSeek-Modell. |
 
+### Ein weiterer Erfolg
+
+| <img src="./docs/screenshots/zzh-badge-root-of-all-evil.png" alt="Der Ursprung allen Übels" width="150" /> |
+|---|
+| **Der Ursprung allen Übels** |
+| Verbraucht Tokens auf der GPT-3.5-Reihe. |
+
 ---
 
 ## Mehrere Konten pro Adapter

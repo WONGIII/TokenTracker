@@ -61,6 +61,13 @@
 | **오라클 (Oracle)** | **필부의 몸, 신에 비견되다 (Mortal Frame)** |
 | GPT-6 Astra에서 Token을 소비합니다. | 모든 DeepSeek 모델에서 Token을 소비합니다. |
 
+### 또 하나의 업적
+
+| <img src="./docs/screenshots/zzh-badge-root-of-all-evil.png" alt="Root of All Evil" width="150" /> |
+|---|
+| **만악의 근원 (Root of All Evil)** |
+| GPT-3.5 시리즈에서 Token을 소비합니다. |
+
 ---
 
 ## 어댑터 하나에 여러 계정

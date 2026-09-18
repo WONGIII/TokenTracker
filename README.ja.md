@@ -58,8 +58,15 @@
 
 | <img src="./docs/screenshots/zzh-badge-oracle.png" alt="神諭（Oracle）" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="凡人之躯、比肩神明（Mortal Frame）" width="150" /> |
 |---|---|
-| **神諭（Oracle）** | **凡人之躯、比肩神明（Mortal Frame）** |
-| GPT-6 Astra で Token を消費する。 | 任意の DeepSeek モデルで Token を消費する。 |
+| **神諭（Oracle）** | **凡人之躯、比肩神明（Mortal Frame）**  |
+| GPT-6 Astra で Token を消費する。 | 任意の DeepSeek モデルで Token を消費する。  | GPT-3.5 シリーズで Token を消費する。 |
+
+### もう一つの実績
+
+| <img src="./docs/screenshots/zzh-badge-root-of-all-evil.png" alt="Root of All Evil" width="150" /> |
+|---|
+| **万悪の源（Root of All Evil）** |
+| GPT-3.5 シリーズで Token を消費する。 |
 
 ---
 
