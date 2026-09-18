@@ -8,6 +8,7 @@ import {
   Blocks,
   Brain,
   CalendarDays,
+  Cpu,
   Crown,
   Feather,
   Flame,
@@ -40,12 +41,13 @@ export const BADGE_CATALOG = [
   { id: "multitool", scope: "cloud", icon: Blocks, format: "count", art: "/achievements/multitool.png" },
   { id: "podium", scope: "cloud", icon: Medal, format: "rank", art: "/achievements/podium.png" },
   { id: "veteran", scope: "cloud", icon: ShieldCheck, format: "days", art: "/achievements/veteran.png" },
-  // FORK: two one-shot achievements. bronze = 1 upstream-side, so tier 1 means "did it
-  // once" and the higher tiers are out of reach — the badge is deliberately single-tier.
-  // format: "tokens" because the metric is a token sum — with "count" the tier read as a
-  // number of sessions, which is what the placeholder thresholds showed.
+  // FORK achievements. The metric is a token sum over specific models, so the ladder is
+  // bronze 1 Token, silver 100M, gold 1B, diamond 10B — bronze is a single token on
+  // purpose ("did you ever call it"), and the tiers above reward volume. format: "tokens"
+  // because with "count" the tier rendered as a number of sessions.
   { id: "oracle", scope: "cloud", icon: Sparkles, format: "tokens", art: "/achievements/oracle.png" },
   { id: "mortal_frame", scope: "cloud", icon: Sunrise, format: "tokens", art: "/achievements/mortal-frame.png" },
+  { id: "root_of_all_evil", scope: "cloud", icon: Cpu, format: "tokens", art: "/achievements/root-of-all-evil.png" },
   { id: "project_hopper", scope: "local", icon: FolderGit2, format: "count", art: "/achievements/project-hopper.png" },
   { id: "project_devotion", scope: "local", icon: Heart, format: "tokens", art: "/achievements/project-devotion.png" },
   { id: "night_owl", scope: "local", icon: MoonStar, format: "count", art: "/achievements/night-owl.png" },

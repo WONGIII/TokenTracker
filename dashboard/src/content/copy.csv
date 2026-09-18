@@ -1692,3 +1692,7 @@ achievements.badge.mortal_frame.name,dashboard,*,AchievementsSection,mortal_fram
 achievements.badge.mortal_frame.desc,dashboard,*,BadgeDetailModal,mortal_frame_desc,"They say the gods sit above and mortals crawl below, that wisdom carries a price tag and common folk deserve only a perfunctory echo. You tried anyway. You asked the one with no divine name — no temple, no hymns, no outrageous price; it simply opened its eyes and handed the answer back. Not lofty, but earnest; no thunder, just a lamp lit. And you understood: matching the gods was never about it becoming one. It was about you no longer having to kneel. So you wrote it down: a mortal frame, rival to gods.
 
 Unlocks by spending Tokens on any DeepSeek model.",,active
+achievements.badge.root_of_all_evil.name,dashboard,*,AchievementsSection,root_of_all_evil_name,"The Root of All Evil",,active
+achievements.badge.root_of_all_evil.desc,dashboard,*,BadgeDetailModal,root_of_all_evil_desc,"Before the dawn of the compute era it arrived quietly — no thunder, no oracle, just a gentle hello. That greeting tore the hardware market off its axis: it lit the spark under graphics cards, woke the memory frenzy, and burned solid-state drives to ash in the blaze of demand. Later ages called it the root of all evil. And you spoke with it. Every call signed your name in the book of original sin; every reply dropped a ripple into the sea of compute. The patient lost their dawn, builders lost their budget, and silicon met its first great inflation.
+
+Unlocks by spending Tokens on the GPT-3.5 series.",,active
