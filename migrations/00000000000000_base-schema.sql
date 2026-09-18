@@ -179,6 +179,8 @@ create table if not exists public.tokentracker_leaderboard_snapshots (
     -- DeepSeek Harness (source "dsh"). Without its own column this fork's main
     -- provider was folded into other_tokens, so the leaderboard named it "Other".
     deepseek_harness_tokens bigint      not null default 0,
+    -- AstrBot (source "astrbot"), the local chat-agent runtime.
+    astrbot_tokens          bigint      not null default 0,
     other_tokens            bigint      not null default 0,
     display_name            text,
     avatar_url              text,
@@ -312,6 +314,7 @@ alter table public.tokentracker_leaderboard_snapshots
     add column if not exists kiro_tokens      bigint not null default 0,
     add column if not exists kimi_tokens      bigint not null default 0,
     add column if not exists deepseek_harness_tokens bigint not null default 0,
+    add column if not exists astrbot_tokens   bigint not null default 0,
     add column if not exists other_tokens     bigint not null default 0;
 
 -- The leaderboard aggregate calls this per row; without it the refresh aborts

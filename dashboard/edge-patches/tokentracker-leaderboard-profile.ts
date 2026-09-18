@@ -554,6 +554,9 @@ const KNOWN_SOURCES = new Set([
   // 4.5e9 tokens under a generic label while the leaderboard table already had a
   // DeepSeek Harness column.
   "dsh", "deepseek",
+  // AstrBot writes source "astrbot" — without it here its usage falls into the
+  // profile modal's generic "other" bucket.
+  "astrbot",
 ]);
 function canonicalSource(s: string) {
   return KNOWN_SOURCES.has(s) ? s : "other";

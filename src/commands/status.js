@@ -83,6 +83,7 @@ const {
   listQoderNewSessionFiles,
   resolveClaudeScienceDbPaths,
   resolveAnythingllmDbPath,
+  resolveAstrBotDbPaths,
   resolveDevinDbPath,
   resolveGooseDbPath,
   listDroidSettingsFiles,
@@ -717,6 +718,12 @@ async function cmdStatus(argv = []) {
   const devinDbPath = resolveDevinDbPath(process.env);
   const devinInstalled = Boolean(devinDbPath && fssync.existsSync(devinDbPath));
 
+  // AstrBot — passive reader of the provider_stats token ledger. The launcher
+  // keeps one database per instance, so report how many were found (the
+  // resolver already existence-checked each path).
+  const astrbotDbPaths = resolveAstrBotDbPaths(process.env);
+  const astrbotInstalled = astrbotDbPaths.length > 0;
+
   // Trae SOLO (ByteDance AI IDE) — passive entitlement snapshot reader.
   const traeStoragePath = resolveTraeStoragePath(process.env);
   const traeInstalled = Boolean(traeStoragePath);
@@ -1062,6 +1069,13 @@ async function cmdStatus(argv = []) {
         devin: devinInstalled
           ? { installed: true, detail: devinDbPath }
           : { installed: false },
+        astrbot: astrbotInstalled
+          ? {
+              installed: true,
+              files: astrbotDbPaths.length,
+              detail: astrbotDbPaths.join(", "),
+            }
+          : { installed: false },
         trae: traeInstalled
           ? {
               installed: true,
@@ -1253,6 +1267,9 @@ async function cmdStatus(argv = []) {
         : null,
       devinInstalled
         ? `- Devin CLI: passive reader (${devinDbPath})`
+        : null,
+      astrbotInstalled
+        ? `- AstrBot: passive reader (${astrbotDbPaths.length} database${astrbotDbPaths.length !== 1 ? "s" : ""}: ${astrbotDbPaths.join(", ")})`
         : null,
       traeInstalled
         // Deliberately NOT "passive reader": every other line with that wording

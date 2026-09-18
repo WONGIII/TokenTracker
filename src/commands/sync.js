@@ -119,6 +119,8 @@ const {
   parseUnslothIncremental,
   resolveAnythingllmDbPath,
   parseAnythingllmIncremental,
+  resolveAstrBotDbPaths,
+  parseAstrBotIncremental,
   resolveDevinDbPath,
   parseDevinIncremental,
   resolveGooseDbPath,
@@ -289,6 +291,7 @@ const AUTO_SYNC_SOURCES = new Set([
   "acode",
   "antigravity",
   "anythingllm",
+  "astrbot",
   "claude",
   "claude-science",
   "codebuddy",
@@ -1715,6 +1718,26 @@ async function cmdSync(argv, context = {}) {
       }
     }
 
+    // ── AstrBot — passive read of the local provider_stats ledger ──
+    let astrbotResult = { recordsProcessed: 0, eventsAggregated: 0, bucketsQueued: 0, projectBucketsQueued: 0 };
+    if (sourceAllowed("astrbot")) {
+      const astrbotDbPaths = resolveAstrBotDbPaths(process.env);
+      if (astrbotDbPaths.length > 0) {
+        if (progress?.enabled) progress.start(`Parsing AstrBot ${renderBar(0)} | buckets 0`);
+        try {
+          astrbotResult = await parseAstrBotIncremental({
+            dbPaths: astrbotDbPaths,
+            cursors,
+            queuePath,
+            projectQueuePath,
+            onProgress: makeProviderProgress("AstrBot"),
+          });
+        } catch (err) {
+          warnProviderParseFailure("AstrBot", err, opts);
+        }
+      }
+    }
+
     // ── Kilo Code VS Code extension (Cline-style ui_messages.json) ──
     const kilocodeTaskFiles = sourceAllowed("kilocode")
       ? mergeBothFileSources({ resolveFiles: resolveKilocodeTaskFiles, env: process.env })
@@ -3011,6 +3034,7 @@ async function cmdSync(argv, context = {}) {
       unslothResult.recordsProcessed +
       anythingllmResult.recordsProcessed +
       devinResult.recordsProcessed +
+      astrbotResult.recordsProcessed +
       kiloResult.recordsProcessed +
       mimoResult.recordsProcessed +
       zcodeResult.recordsProcessed +
@@ -3051,6 +3075,7 @@ async function cmdSync(argv, context = {}) {
       unslothResult.bucketsQueued +
       anythingllmResult.bucketsQueued +
       devinResult.bucketsQueued +
+      astrbotResult.bucketsQueued +
       kiloResult.bucketsQueued +
       mimoResult.bucketsQueued +
       zcodeResult.bucketsQueued +

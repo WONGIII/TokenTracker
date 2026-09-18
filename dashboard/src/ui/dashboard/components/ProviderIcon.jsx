@@ -408,6 +408,9 @@ const PROVIDER_ICON_MAP = {
 const PROVIDER_LOGO_MAP = {
   ANTIGRAVITY: "/brand-logos/antigravity.svg",
   ANYTHINGLLM: "/brand-logos/anythingllm.svg",
+  // AstrBot publishes its mark as the dashboard favicon: a two-star glyph in
+  // the product's own brand blue, already legible on both themes.
+  ASTRBOT: "/brand-logos/astrbot.svg",
   CLAUDE: "/brand-logos/claude-code.svg",
   "CLAUDE-SCIENCE": "/brand-logos/claude-code.svg",
   CODEX: "/brand-logos/codex.svg",

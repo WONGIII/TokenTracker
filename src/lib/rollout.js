@@ -13474,6 +13474,483 @@ async function parseDevinIncremental({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// AstrBot (github.com/AstrBotDevs/AstrBot)
+//
+// Data: SQLite data_v4.db in the AstrBot data directory:
+//   $ASTRBOT_ROOT/data/data_v4.db                              (upstream root override)
+//   ~/.astrbot/data/data_v4.db                                 (packaged desktop runtime)
+//   ~/.astrbot_launcher/instances/<uuid>/core/data/data_v4.db  (launcher instance)
+//   Override: $TOKENTRACKER_ASTRBOT_DB (exact file),
+//             $TOKENTRACKER_ASTRBOT_HOME (data directory)
+//
+// AstrBot's root is $ASTRBOT_ROOT or the process working directory
+// (astrbot/core/utils/astrbot_path.py), so it cannot be discovered from the
+// filesystem alone; the launcher keeps its instance list in a binary redb store
+// (~/.astrbot_launcher/data.redb) with no readable registry, so its instances
+// directory is enumerated instead. A containerised AstrBot is reached by
+// pointing one of the overrides at a bind-mounted data directory — the tracker
+// never talks to a container runtime itself (the same
+// deterministic-paths-plus-override shape as the AnythingLLM adapter).
+//
+// provider_stats holds one row per LLM request: the owning conversation, the
+// provider's model name, and three disjoint token counters — token_input_other
+// (non-cached input), token_input_cached (cache reads) and token_output.
+// start_time/end_time are Unix epoch SECONDS as a float. Message bodies live in
+// platform_message_history.content and are never selected: the projections
+// below read counters and identifiers only.
+//
+// Aggregation follows the Devin parser: the whole usage projection is re-read
+// whenever a database's fingerprint moves, and a per-row ledger
+// (cursors.astrbot.dbs[dbPath].requests, keyed by provider_stats.id) subtracts
+// a row's previous contribution before adding its current one, so a record
+// finalized after its first observation is re-based instead of counted twice.
+// Every database keeps its own ledger because row ids are only unique inside
+// one file, and all of them are parsed into the same buckets.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ASTRBOT_SOURCE = "astrbot";
+const ASTRBOT_DB_FILE_NAME = "data_v4.db";
+
+const ASTRBOT_TABLE_PROBE_SQL =
+  "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('provider_stats','conversations')";
+
+// Usage-only projection. provider_id is deliberately not selected: it names the
+// configured provider instance (e.g. commandcodegoat/deepseek/...), while
+// pricing and the dashboard key on provider_model.
+const ASTRBOT_USAGE_SQL = [
+  "SELECT",
+  "  id,",
+  "  conversation_id,",
+  "  umo,",
+  "  provider_model,",
+  "  token_input_other,",
+  "  token_input_cached,",
+  "  token_output,",
+  "  start_time,",
+  "  end_time",
+  "FROM provider_stats",
+  "ORDER BY id",
+].join("\n");
+
+// Conversation metadata for the session browser. content (the transcript) and
+// user_id (the platform-side account name) are never selected.
+const ASTRBOT_CONVERSATION_SQL = [
+  "SELECT",
+  "  conversation_id,",
+  "  inner_conversation_id,",
+  "  platform_id,",
+  "  title,",
+  "  created_at,",
+  "  updated_at",
+  "FROM conversations",
+  "WHERE conversation_id IS NOT NULL",
+  "ORDER BY created_at DESC, inner_conversation_id DESC",
+].join("\n");
+
+// Every data_v4.db this machine can see, existence-checked, de-duplicated and
+// sorted so the parsed set is deterministic. An override that names an already
+// discovered path collapses into that one entry rather than counting twice.
+function resolveAstrBotDbPaths(env = process.env, deps = {}) {
+  const platform = deps.platform || process.platform;
+  const existsSync = deps.existsSync || fssync.existsSync;
+  const readdirSync = deps.readdirSync || fssync.readdirSync;
+  const home =
+    deps.nativeHome ||
+    (platform === "win32"
+      ? env.USERPROFILE || env.HOME || os.homedir()
+      : env.HOME || os.homedir());
+  const envValue = (key) =>
+    typeof env[key] === "string" && env[key].trim() ? env[key].trim() : null;
+
+  const candidates = [];
+  const exactDb = envValue("TOKENTRACKER_ASTRBOT_DB");
+  if (exactDb) candidates.push(exactDb);
+
+  const root = envValue("ASTRBOT_ROOT");
+  if (root) candidates.push(path.join(root, "data", ASTRBOT_DB_FILE_NAME));
+
+  candidates.push(path.join(home, ".astrbot", "data", ASTRBOT_DB_FILE_NAME));
+
+  // The launcher generates one instance directory per install (UUID-named), so
+  // enumerate all of them instead of picking the first. A missing or unreadable
+  // directory just means "not installed through the launcher".
+  const instancesRoot = path.join(home, ".astrbot_launcher", "instances");
+  try {
+    const instanceNames = readdirSync(instancesRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    for (const name of instanceNames) {
+      candidates.push(path.join(instancesRoot, name, "core", "data", ASTRBOT_DB_FILE_NAME));
+    }
+  } catch (_e) { }
+
+  const homeOverride = envValue("TOKENTRACKER_ASTRBOT_HOME");
+  if (homeOverride) candidates.push(path.join(homeOverride, ASTRBOT_DB_FILE_NAME));
+
+  return [...new Set(candidates.map((value) => path.resolve(value)))]
+    .filter((value) => existsSync(value))
+    .sort();
+}
+
+function astrbotSqliteFingerprint(dbPath) {
+  const fingerprint = sqliteSidecarFingerprint(dbPath);
+  // -shm is reader bookkeeping: opening a WAL database can bump it without any
+  // content change, so it must not force a rescan (same convention as Devin).
+  delete fingerprint["-shm"];
+  return fingerprint;
+}
+
+// Ledger keys and conversation keys are untrusted strings — normalize the
+// persisted maps into null-prototype dictionaries so a literal "__proto__" key
+// stays an own entry that round-trips through cursors.json instead of silently
+// mutating the prototype chain (and re-adding that row's usage on every rescan).
+function astrbotStringMap(value) {
+  const dict = Object.create(null);
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    for (const key of Object.keys(value)) dict[key] = value[key];
+  }
+  return dict;
+}
+
+// Stage only the bucket objects this parser can mutate. The shared normalizers
+// copy the bucket maps but alias each bucket/totals object, and the enqueue
+// helpers stamp queuedKey before appendFile runs — so a failed append used to
+// leave the caller's published state polluted. Only astrbot-owned entries get
+// private copies; every other provider's buckets stay shared read-only
+// references (same staging as the Devin parser).
+function stageAstrBotBuckets(buckets, isAstrBotBucket) {
+  const staged = {};
+  for (const [key, bucket] of Object.entries(buckets || {})) {
+    staged[key] =
+      bucket && typeof bucket === "object" && isAstrBotBucket(key, bucket)
+        ? {
+            ...bucket,
+            totals:
+              bucket.totals && typeof bucket.totals === "object"
+                ? { ...bucket.totals }
+                : bucket.totals,
+          }
+        : bucket;
+  }
+  return staged;
+}
+
+function astrbotText(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+// provider_stats.start_time/end_time are Unix epoch SECONDS as a float. A value
+// at or above 1e11 is already milliseconds (1e11 seconds is the year 5138), so
+// both spellings resolve to the same instant without guessing per row.
+function astrbotTimestampMs(value) {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  return Math.round(seconds < 1e11 ? seconds * 1000 : seconds);
+}
+
+// Normalize one projected row into the usage event the ledger reconciles, or
+// null when there is nothing to count yet: an all-zero counter set is a request
+// whose row has not been finalized (AstrBot inserts the row, then updates the
+// counters), and a missing start_time cannot be placed in a half-hour bucket.
+// Both are re-evaluated on the next fingerprint change.
+function normalizeAstrBotUsageRow(row) {
+  const rowId = toNonNegativeInt(row?.id);
+  if (rowId <= 0) return null;
+
+  const input = toNonNegativeInt(row?.token_input_other);
+  const cached = toNonNegativeInt(row?.token_input_cached);
+  const output = toNonNegativeInt(row?.token_output);
+  const total = input + cached + output;
+  if (total <= 0) return null;
+
+  const tsMs =
+    astrbotTimestampMs(row?.start_time) ?? astrbotTimestampMs(row?.end_time);
+  if (!tsMs) return null;
+
+  // conversation_id is the AstrBot conversation UUID; umo is the fallback origin
+  // key for rows recorded outside a conversation. Both are used as in-memory
+  // ledger keys only and are never written to the queue.
+  return {
+    rowId,
+    conversationKey:
+      astrbotText(row?.conversation_id) || astrbotText(row?.umo) || "row:" + rowId,
+    model: normalizeModelInput(row?.provider_model) || "astrbot-unknown",
+    tsMs,
+    totals: {
+      input_tokens: input,
+      cached_input_tokens: cached,
+      cache_creation_input_tokens: 0,
+      output_tokens: output,
+      reasoning_output_tokens: 0,
+      total_tokens: total,
+      billable_total_tokens: total,
+      total_cost_usd: 0,
+      conversation_count: 0,
+    },
+  };
+}
+
+function buildAstrBotUsageEvents(rows) {
+  const events = [];
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const event = normalizeAstrBotUsageRow(row);
+    if (event) events.push(event);
+  }
+  events.sort((a, b) => a.tsMs - b.tsMs || a.rowId - b.rowId);
+  return events;
+}
+
+// Shared narrow reader: probe the table before selecting so an AstrBot database
+// that predates this shape degrades to "no rows" instead of failing the whole
+// provider parse.
+async function readAstrBotRows(dbPath, table, sql, sqliteOptions = {}) {
+  if (!dbPath || !fssync.existsSync(dbPath)) return [];
+  const options = {
+    label: "AstrBot",
+    maxBuffer: 32 * 1024 * 1024,
+    timeout: 30_000,
+    readOnly: true,
+    throwOnReadFailure: true,
+    ...sqliteOptions,
+  };
+  let snapshot = null;
+  let effectiveDbPath = dbPath;
+  if (isUncPath(dbPath)) {
+    try {
+      snapshot = snapshotSqliteDb(dbPath);
+      effectiveDbPath = snapshot.path;
+    } catch (_e) { }
+  }
+  try {
+    const tables = new Set(
+      (await readSqliteJsonRowsAsync(effectiveDbPath, ASTRBOT_TABLE_PROBE_SQL, options))
+        .map((row) => row?.name)
+        .filter(Boolean),
+    );
+    if (!tables.has(table)) return [];
+    return await readSqliteJsonRowsAsync(effectiveDbPath, sql, options);
+  } finally {
+    if (snapshot) snapshot.cleanup();
+  }
+}
+
+async function readAstrBotUsageRows(dbPath, sqliteOptions = {}) {
+  return readAstrBotRows(dbPath, "provider_stats", ASTRBOT_USAGE_SQL, sqliteOptions);
+}
+
+async function readAstrBotConversations(dbPath, sqliteOptions = {}) {
+  return readAstrBotRows(dbPath, "conversations", ASTRBOT_CONVERSATION_SQL, sqliteOptions);
+}
+
+async function parseAstrBotIncremental({
+  dbPath,
+  dbPaths,
+  cursors,
+  queuePath,
+  projectQueuePath,
+  onProgress,
+  env,
+  sqliteOptions,
+} = {}) {
+  await ensureDir(path.dirname(queuePath));
+  const requested =
+    Array.isArray(dbPaths) && dbPaths.length > 0
+      ? dbPaths
+      : dbPath
+        ? [dbPath]
+        : resolveAstrBotDbPaths(env || process.env);
+  const resolvedPaths = [
+    ...new Set(
+      requested
+        .filter((value) => typeof value === "string" && value.trim().length > 0)
+        .map((value) => path.resolve(value.trim())),
+    ),
+  ].sort();
+
+  const priorState =
+    cursors.astrbot && typeof cursors.astrbot === "object" ? cursors.astrbot : {};
+  const dbStates = astrbotStringMap(priorState.dbs);
+
+  // Stage the normalized working state: bucket-map copies alias the caller's
+  // published bucket objects, so give only the astrbot-owned entries (plus the
+  // flat groupQueued map) private copies. Reconciliation and enqueue mutations
+  // then land on staged state and are published only after the queue append
+  // succeeds — a failed append leaves cursors untouched so a retry re-derives
+  // the same contribution and latest-wins rows recover either queue.
+  const hourlyState = normalizeHourlyState(cursors?.hourly);
+  hourlyState.buckets = stageAstrBotBuckets(
+    hourlyState.buckets,
+    (key) =>
+      (normalizeSourceInput(parseBucketKey(key).source) || DEFAULT_SOURCE) ===
+      ASTRBOT_SOURCE,
+  );
+  hourlyState.groupQueued =
+    hourlyState.groupQueued && typeof hourlyState.groupQueued === "object"
+      ? { ...hourlyState.groupQueued }
+      : {};
+  const touchedBuckets = new Set();
+  const cb = typeof onProgress === "function" ? onProgress : null;
+  let recordsProcessed = 0;
+  let eventsAggregated = 0;
+
+  for (const resolvedDb of resolvedPaths) {
+    if (!fssync.existsSync(resolvedDb)) continue;
+    const dbState =
+      dbStates[resolvedDb] && typeof dbStates[resolvedDb] === "object"
+        ? dbStates[resolvedDb]
+        : {};
+
+    // Cheap unchanged check: skip all SQL work when neither the database nor
+    // its WAL moved since the last published state.
+    const initialFingerprint = astrbotSqliteFingerprint(resolvedDb);
+    if (sameSqliteFingerprint(initialFingerprint, dbState.fingerprint)) continue;
+
+    const rows = await readAstrBotUsageRows(resolvedDb, sqliteOptions);
+    const events = buildAstrBotUsageEvents(rows);
+    recordsProcessed += rows.length;
+
+    const requests = astrbotStringMap(dbState.requests);
+    // The conversations that already paid their +1 are derived from the
+    // retained ledger: the entry that paid keeps that share in its own totals,
+    // even after every row of that conversation stops being reported — no
+    // second persisted map.
+    const countedConversations = new Set();
+    for (const [rowId, entry] of Object.entries(requests)) {
+      const totals = entry && typeof entry === "object" ? entry.totals : null;
+      if (
+        totals &&
+        Number.isSafeInteger(totals.conversation_count) &&
+        totals.conversation_count >= 1
+      ) {
+        countedConversations.add(
+          typeof entry.conversationKey === "string" && entry.conversationKey
+            ? entry.conversationKey
+            : "row:" + rowId,
+        );
+      }
+    }
+
+    for (let index = 0; index < events.length; index++) {
+      const event = events[index];
+      const bucketStart = toUtcHalfHourStart(new Date(event.tsMs).toISOString());
+      if (!bucketStart) continue;
+
+      const ledgerKey = String(event.rowId);
+      const previous = requests[ledgerKey];
+      const previousTotals =
+        previous?.totals && typeof previous.totals === "object"
+          ? previous.totals
+          : null;
+
+      // The conversation recorded at first observation is authoritative: a row
+      // that later loses its conversation_id keeps its original attribution
+      // instead of paying a second conversation.
+      let conversationKey = previous ? previous.conversationKey || null : null;
+      if (previous) {
+        const priorConv = previousTotals ? previousTotals.conversation_count : 0;
+        event.totals.conversation_count =
+          Number.isSafeInteger(priorConv) && priorConv >= 0 ? priorConv : 0;
+      } else {
+        conversationKey = event.conversationKey;
+        // A conversation pays its single +1 on its first counted request; every
+        // later turn in the same conversation adds tokens only.
+        if (countedConversations.has(conversationKey)) {
+          event.totals.conversation_count = 0;
+        } else {
+          event.totals.conversation_count = 1;
+          countedConversations.add(conversationKey);
+        }
+      }
+
+      const unchanged =
+        previousTotals &&
+        totalsKey(previousTotals) === totalsKey(event.totals) &&
+        previous.bucketStart === bucketStart &&
+        previous.model === event.model;
+      if (!unchanged) {
+        if (previousTotals && previous.bucketStart && previous.model) {
+          const oldBucket = getHourlyBucket(
+            hourlyState,
+            ASTRBOT_SOURCE,
+            previous.model,
+            previous.bucketStart,
+          );
+          subtractTotals(oldBucket.totals, previousTotals);
+          touchedBuckets.add(
+            bucketKey(ASTRBOT_SOURCE, previous.model, previous.bucketStart),
+          );
+        }
+        const bucket = getHourlyBucket(
+          hourlyState,
+          ASTRBOT_SOURCE,
+          event.model,
+          bucketStart,
+        );
+        addTotals(bucket.totals, event.totals);
+        touchedBuckets.add(bucketKey(ASTRBOT_SOURCE, event.model, bucketStart));
+        // The ledger records only what was added: model, bucket, totals and the
+        // owning conversation key — never message text or a raw origin string.
+        requests[ledgerKey] = {
+          conversationKey,
+          model: event.model,
+          bucketStart,
+          totals: event.totals,
+          updatedAt: new Date().toISOString(),
+        };
+        eventsAggregated += 1;
+      }
+      if (cb) {
+        cb({
+          index: index + 1,
+          total: events.length,
+          recordsProcessed: recordsProcessed - rows.length + index + 1,
+          eventsAggregated,
+          bucketsQueued: touchedBuckets.size,
+        });
+      }
+    }
+
+    // If AstrBot wrote to the database/WAL while it was being read, publish the
+    // pre-read fingerprint so the next sync re-reads instead of acknowledging a
+    // snapshot it never saw (same convention as parseDevinIncremental).
+    const finalFingerprint = astrbotSqliteFingerprint(resolvedDb);
+    const dbUpdatedAt = new Date().toISOString();
+    dbStates[resolvedDb] = {
+      version: 1,
+      requests,
+      fingerprint: sameSqliteFingerprint(initialFingerprint, finalFingerprint)
+        ? finalFingerprint
+        : initialFingerprint,
+      updatedAt: dbUpdatedAt,
+    };
+  }
+
+  const bucketsQueued = await enqueueTouchedBuckets({
+    queuePath,
+    hourlyState,
+    touchedBuckets,
+  });
+  const updatedAt = new Date().toISOString();
+  hourlyState.updatedAt = updatedAt;
+  cursors.hourly = hourlyState;
+  cursors.astrbot = { version: 1, dbs: dbStates, updatedAt };
+  // AstrBot records no working directory — a conversation belongs to a chat
+  // platform, not to a checkout — so nothing can be attributed to a project.
+  // projectQueuePath is accepted only to keep the parser signature uniform with
+  // the other SQLite adapters; no project bucket is ever written.
+  void projectQueuePath;
+  return {
+    recordsProcessed,
+    eventsAggregated,
+    bucketsQueued,
+    projectBucketsQueued: 0,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Goose (Block AI agent — github.com/block/goose)
 //
 // Data: SQLite at
@@ -21967,6 +22444,11 @@ module.exports = {
   parseAnythingllmTimestamp,
   readAnythingllmUsageRows,
   parseAnythingllmIncremental,
+  resolveAstrBotDbPaths,
+  readAstrBotUsageRows,
+  readAstrBotConversations,
+  buildAstrBotUsageEvents,
+  parseAstrBotIncremental,
   resolveDevinDbPath,
   readDevinUsageRows,
   parseDevinIncremental,

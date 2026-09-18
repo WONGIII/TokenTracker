@@ -32,6 +32,10 @@ const {
   listClaudeProjectFiles,
   listRolloutFilesDeep,
   claudeMessageDedupKey,
+  resolveAstrBotDbPaths,
+  readAstrBotConversations,
+  readAstrBotUsageRows,
+  buildAstrBotUsageEvents,
   resolveDshSessionFiles,
   readDshSessionText,
   normalizeDshModelName,
@@ -1389,11 +1393,168 @@ async function scanDshSession(filePath) {
   });
 }
 
+// conversations.created_at/updated_at are naive UTC datetimes
+// ("2026-09-18 16:17:00.961648"): normalize the separator and pin the zone so a
+// conversation with no counted request still gets honest session bounds.
+function parseAstrBotDatetime(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const normalized = value.trim().replace(" ", "T");
+  const zoned = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalized)
+    ? normalized
+    : normalized + "Z";
+  const ms = Date.parse(zoned);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+}
+
+/**
+ * AstrBot session scanner.
+ *
+ * AstrBot keeps no per-session file: one SQLite database (data_v4.db — see
+ * resolveAstrBotDbPaths in rollout.js) holds every conversation and its
+ * per-request usage rows in provider_stats. A conversation is therefore the
+ * session unit, and discovery hands the scan the conversation's own rows (the
+ * readAstrBot* projections in rollout.js) instead of a file path, so a changed
+ * database rebuilds its rows without one SQLite spawn per conversation.
+ *
+ * Only counters, ids, the platform name and the agent-written conversation
+ * title are read — `conversations.content` (the transcript) is never selected.
+ * AstrBot records no working directory either (a conversation belongs to a chat
+ * platform, not to a checkout), so project_key/project_ref stay null and the
+ * browser cannot offer a resume command for one.
+ */
+function scanAstrBotSession({ dbPath, conversation, usageRows }) {
+  const conversationId = typeof conversation?.conversation_id === "string"
+    ? conversation.conversation_id.trim()
+    : "";
+  const tokens = emptyTotals();
+  const bounds = emptyBounds();
+  const byModel = new Map();
+  let usageEvents = 0;
+  let lastModel = null;
+
+  // The conversation's own timestamps bound the session even when its request
+  // rows carry no counters yet (a failed first turn still shows up).
+  updateBounds(bounds, parseAstrBotDatetime(conversation?.created_at));
+  updateBounds(bounds, parseAstrBotDatetime(conversation?.updated_at));
+
+  // Reuse the usage parser's row normalization so the browser's per-session
+  // totals cannot drift from the buckets sync writes for the same rows.
+  for (const event of buildAstrBotUsageEvents(usageRows)) {
+    updateBounds(bounds, new Date(event.tsMs).toISOString());
+    addTotals(tokens, event.totals);
+    const model = normalizeSessionModel(event.model) || "unknown";
+    lastModel = model;
+    let usage = byModel.get(model);
+    if (!usage) {
+      usage = {
+        model,
+        input_tokens: 0,
+        cached_input_tokens: 0,
+        cache_creation_input_tokens: 0,
+        output_tokens: 0,
+        reasoning_output_tokens: 0,
+        total_tokens: 0,
+        usage_events: 0,
+      };
+      byModel.set(model, usage);
+    }
+    addTotals(usage, event.totals);
+    usage.usage_events += 1;
+    usageEvents += 1;
+  }
+
+  return finalizeRecord({
+    version: SIDECAR_VERSION,
+    session_hash: sessionHash("astrbot", conversationId || dbPath),
+    session_id: conversationId || null,
+    title: cleanSessionTitle(conversation?.title),
+    source: "astrbot",
+    project_key: null,
+    project_ref: null,
+    model: lastModel || "unknown",
+    ...bounds,
+    turns: Array.isArray(usageRows) ? usageRows.length : 0,
+    edit_turns: 0,
+    retry_turns: 0,
+    subagent_calls: 0,
+    subagent_types: {},
+    tokens,
+    model_usage: [...byModel.values()],
+    usage_events: usageEvents,
+    usage_precision: usageEvents > 0 ? "reported" : "unavailable",
+    usage_is_incomplete: false,
+    cost_is_partial: false,
+    cost_source: "model_pricing",
+    provider_cost_usd: null,
+    model_calls: Array.isArray(usageRows) ? usageRows.length : 0,
+    api_duration_ms: 0,
+    context_tokens_used: 0,
+    context_window_tokens: 0,
+    context_usage_percent: 0,
+    tool_calls: 0,
+    tool_failures: 0,
+    error_count: 0,
+    compaction_count: 0,
+    provenance: {
+      source: "local-session-db",
+      confidence: usageEvents > 0 ? "observed" : "partial",
+      retry_confidence: "inferred",
+      content_retained: false,
+      usage: "provider_stats.token_input_other+token_input_cached+token_output",
+      cost: "model_pricing",
+    },
+  });
+}
+
+// AstrBot conversations are rows, not files: discovery reads each database once
+// (metadata plus usage) and emits one descriptor per conversation. Doing it here
+// rather than per conversation inside the scan matters because the sidecar cache
+// is keyed on the database's stat, so any change rebuilds every conversation of
+// that database.
+async function discoverAstrBotSessions(env = process.env, deps = {}) {
+  const descriptors = [];
+  for (const dbPath of resolveAstrBotDbPaths(env, deps)) {
+    let conversations = [];
+    let usageRows = [];
+    try {
+      conversations = await readAstrBotConversations(dbPath);
+      usageRows = await readAstrBotUsageRows(dbPath);
+    } catch (error) {
+      // A locked or half-written database must not poison the sidecar: skip this
+      // install and let the next refresh retry.
+      if (!process.env.NODE_TEST_CONTEXT) {
+        console.warn(`[session-analytics] skipped astrbot database: ${error?.message || error}`);
+      }
+      continue;
+    }
+    const usageByConversation = new Map();
+    for (const row of usageRows) {
+      const key = typeof row?.conversation_id === "string" ? row.conversation_id.trim() : "";
+      if (!key) continue;
+      const list = usageByConversation.get(key);
+      if (list) list.push(row);
+      else usageByConversation.set(key, [row]);
+    }
+    for (const conversation of conversations) {
+      const key = typeof conversation?.conversation_id === "string"
+        ? conversation.conversation_id.trim()
+        : "";
+      if (!key) continue;
+      descriptors.push({
+        dbPath,
+        conversation,
+        usageRows: usageByConversation.get(key) || [],
+      });
+    }
+  }
+  return descriptors;
+}
+
 async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const grokHome = resolveGrokHome(home);
   const claudeRoots = providerRoots(home, ".claude", env, deps);
   const codexRoots = providerRoots(home, ".codex", env, deps);
-  const [claudeGroups, codexGroups, archivedGroups, grok, dsh] = await Promise.all([
+  const [claudeGroups, codexGroups, archivedGroups, grok, dsh, astrbot] = await Promise.all([
     Promise.all(claudeRoots.map((r) => listClaudeProjectFiles(path.join(r, "projects")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "sessions")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "archived_sessions")))),
@@ -1402,6 +1563,9 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
     // inject a temporary home, and without this they would discover the
     // developer's real ~/.dsh sessions (309 of them, which broke three tests).
     resolveDshSessionFiles(env, { ...deps, nativeHome: path.join(home, ".dsh") }),
+    // Same isolation as the harness home above: without the injected home a test
+    // would read the developer's real AstrBot databases instead of its fixture.
+    discoverAstrBotSessions(env, { ...deps, nativeHome: home }),
   ]);
   const allClaude = groupClaudeFilesAcrossRoots(claudeGroups);
   const codex = [...new Set(codexGroups.flat())];
@@ -1413,7 +1577,7 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const claude = allClaude.filter((filePaths) => !filePaths.some((filePath) => filePath
     .split(path.sep)
     .some((segment) => segment.endsWith(CLAUDE_MEM_OBSERVER_PROJECT_SUFFIX))));
-  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok, dsh };
+  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok, dsh, astrbot };
 }
 
 function filesSignature(files) {
@@ -1554,6 +1718,9 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
     ...discovered.grok.map(grokSummaryPathFor),
     ...discovered.grok.map(grokSignalsPathFor),
     ...discovered.dsh,
+    // One entry per database, not per conversation: the file list is what the
+    // refresh signature hashes.
+    ...[...new Set(discovered.astrbot.map((descriptor) => descriptor.dbPath))],
   ]);
   if (!force && previousMeta?.version === SIDECAR_VERSION && previousMeta.signature === signature) {
     await writeAtomic(metaPath, `${JSON.stringify({ ...previousMeta, checked_at: new Date().toISOString() })}\n`);
@@ -1576,13 +1743,25 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
     ...discovered.codex.map((filePaths) => ({ source: "codex", filePath: filePaths, scan: scanCodexSession })),
     ...discovered.grok.map((filePath) => ({ source: "grok", filePath, scan: scanGrokSession })),
     ...discovered.dsh.map((filePath) => ({ source: "dsh", filePath, scan: scanDshSession })),
+    ...discovered.astrbot.map((descriptor) => ({
+      source: "astrbot",
+      filePath: descriptor.dbPath,
+      // Every conversation of one database shares that database's stat, so the
+      // cache key has to carry the conversation identity as well — without it
+      // they collapse onto a single entry and all but one are rescanned.
+      cacheKey: sessionFileCacheKey("astrbot", [
+        descriptor.dbPath,
+        descriptor.conversation.conversation_id,
+      ]),
+      scan: () => scanAstrBotSession(descriptor),
+    })),
   ];
   // Files we could not turn into a row (permission denied, half-written line,
   // vanished mid-scan). Swallowing these silently made sessions disappear with
   // no signal at all; count them so the API can say so.
   let skippedFiles = 0;
   for (const entry of entries) {
-    const cacheKey = sessionFileCacheKey(entry.source, entry.filePath);
+    const cacheKey = entry.cacheKey || sessionFileCacheKey(entry.source, entry.filePath);
     const statKey = analyticsEntryStatKey(entry.source, entry.filePath);
     if (!statKey) {
       skippedFiles += 1;
@@ -2177,6 +2356,7 @@ module.exports = {
   scanCodexSession,
   scanGrokSession,
   scanDshSession,
+  scanAstrBotSession,
   buildSessionAnalytics,
   summarizeSessions,
   listSessionsForBrowser,

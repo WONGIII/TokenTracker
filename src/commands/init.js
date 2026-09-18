@@ -72,6 +72,7 @@ const {
   resolveLmstudioLogFiles,
   resolveUnslothDbPath,
   resolveAnythingllmDbPath,
+  resolveAstrBotDbPaths,
   resolveDevinDbPath,
   resolveReasonixHome,
   resolveTraeStoragePath,
@@ -911,6 +912,18 @@ async function applyIntegrationSetup({
     if (anythingllmDbPath && fssync.existsSync(anythingllmDbPath)) {
       summary.push({
         label: "AnythingLLM Desktop",
+        status: "detected",
+        detail: "Passive reader (no hook needed)",
+      });
+    }
+  }
+
+  // AstrBot: passive SQLite reader — no hook installation needed.
+  {
+    const astrbotDbPaths = resolveAstrBotDbPaths(process.env);
+    if (astrbotDbPaths.length > 0) {
+      summary.push({
+        label: "AstrBot",
         status: "detected",
         detail: "Passive reader (no hook needed)",
       });

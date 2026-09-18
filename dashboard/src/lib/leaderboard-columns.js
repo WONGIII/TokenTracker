@@ -25,6 +25,15 @@ export const LEADERBOARD_TOKEN_COLUMNS = [
     icon: "/brand-logos/deepseek-harness.svg",
     provider: "dsh",
   },
+  // AstrBot (source "astrbot") keeps its own column like the harness: the
+  // `provider` override resolves the brand mark for the mobile badge by name
+  // instead of deriving it from the icon filename.
+  {
+    key: "astrbot_tokens",
+    copyKey: "provider.display.astrbot",
+    icon: "/brand-logos/astrbot.svg",
+    provider: "astrbot",
+  },
   { key: "opencode_tokens", copyKey: "leaderboard.column.opencode", icon: "/brand-logos/opencode.svg" },
   { key: "openclaw_tokens", copyKey: "leaderboard.column.openclaw", icon: "/brand-logos/openclaw.svg" },
   { key: "hermes_tokens", copyKey: "leaderboard.column.hermes", icon: "/brand-logos/hermes.svg" },
