@@ -52,9 +52,9 @@ Das Original ist ein fertiges Produkt; dies ist mein persönlicher Build davon. 
 
 ---
 
-## Die zwei Erfolge, die dieser Fork hinzufügt
+## Die drei Erfolge, die dieser Fork hinzufügt
 
-Beide richten sich nach den **Tokens, die auf diesen Modellen verbraucht wurden** (Bronze 1 Token, Silber 100 Mio., Gold 1 Mrd., Diamant 10 Mrd.; stündlich neu berechnet).
+Alle drei richten sich nach den **Tokens, die auf diesen Modellen verbraucht wurden** (Bronze 1 Token, Silber 100 Mio., Gold 1 Mrd., Diamant 10 Mrd.; stündlich neu berechnet).
 
 | <img src="./docs/screenshots/zzh-badge-oracle.png" alt="Orakel" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="Sterblicher Leib, den Göttern ebenbürtig" width="150" /> |
 |---|---|

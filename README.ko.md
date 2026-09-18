@@ -52,9 +52,9 @@
 
 ---
 
-## 이 fork가 추가한 두 가지 업적
+## 이 fork가 추가한 세 가지 업적
 
-둘 다 **해당 모델에서 쓴 Token 합계**로 결정됩니다(브론즈 1 Token / 실버 1억 / 골드 10억 / 다이아 100억, 매시간 재계산).
+셋 다 **해당 모델에서 쓴 Token 합계**로 결정됩니다(브론즈 1 Token / 실버 1억 / 골드 10억 / 다이아 100억, 매시간 재계산).
 
 | <img src="./docs/screenshots/zzh-badge-oracle.png" alt="오라클 (Oracle)" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="필부의 몸, 신에 비견되다 (Mortal Frame)" width="150" /> |
 |---|---|

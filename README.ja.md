@@ -52,9 +52,9 @@
 
 ---
 
-## この fork が追加した 2 つの実績
+## この fork が追加した 3 つの実績
 
-どちらも**そのモデルで消費した Token の合計**で決まります（ブロンズ 1 Token / シルバー 1 億 / ゴールド 10 億 / ダイヤ 100 億、毎時再計算）。
+いずれも**そのモデルで消費した Token の合計**で決まります（ブロンズ 1 Token / シルバー 1 億 / ゴールド 10 億 / ダイヤ 100 億、毎時再計算）。
 
 | <img src="./docs/screenshots/zzh-badge-oracle.png" alt="神諭（Oracle）" width="150" /> | <img src="./docs/screenshots/zzh-badge-mortal-frame.png" alt="凡人之躯、比肩神明（Mortal Frame）" width="150" /> |
 |---|---|

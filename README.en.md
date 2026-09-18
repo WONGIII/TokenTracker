@@ -52,9 +52,9 @@ Upstream is a finished product; this is my personal build of it. Everything belo
 
 ---
 
-## The two achievements this fork adds
+## The three achievements this fork adds
 
-Both are earned by **tokens spent on those models** — bronze 1 Token, silver 100M, gold 1B, diamond 10B — recomputed hourly.
+All three are earned by **tokens spent on those models** — bronze 1 Token, silver 100M, gold 1B, diamond 10B — recomputed hourly.
 
 ### Oracle
 
