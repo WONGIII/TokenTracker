@@ -121,6 +121,8 @@ const {
   parseAnythingllmIncremental,
   resolveAstrBotDbPaths,
   parseAstrBotIncremental,
+  resolveOpenBitFunHomes,
+  parseOpenBitFunIncremental,
   resolveDevinDbPath,
   parseDevinIncremental,
   resolveGooseDbPath,
@@ -316,6 +318,7 @@ const AUTO_SYNC_SOURCES = new Set([
   "mimo",
   "omo",
   "omp",
+  "openbitfun",
   "opencode",
   "openclaw",
   "pi",
@@ -1738,6 +1741,26 @@ async function cmdSync(argv, context = {}) {
       }
     }
 
+    // ── OpenBitFun (GCWing/OpenBitFun) — passive read of the per-turn JSON ledger ──
+    let openbitfunResult = { recordsProcessed: 0, eventsAggregated: 0, bucketsQueued: 0, projectBucketsQueued: 0 };
+    if (sourceAllowed("openbitfun")) {
+      const openbitfunHomes = resolveOpenBitFunHomes(process.env);
+      if (openbitfunHomes.length > 0) {
+        if (progress?.enabled) progress.start("Parsing OpenBitFun " + renderBar(0) + " | buckets 0");
+        try {
+          openbitfunResult = await parseOpenBitFunIncremental({
+            homes: openbitfunHomes,
+            cursors,
+            queuePath,
+            projectQueuePath,
+            onProgress: makeProviderProgress("OpenBitFun"),
+          });
+        } catch (err) {
+          warnProviderParseFailure("OpenBitFun", err, opts);
+        }
+      }
+    }
+
     // ── Kilo Code VS Code extension (Cline-style ui_messages.json) ──
     const kilocodeTaskFiles = sourceAllowed("kilocode")
       ? mergeBothFileSources({ resolveFiles: resolveKilocodeTaskFiles, env: process.env })
@@ -3035,6 +3058,7 @@ async function cmdSync(argv, context = {}) {
       anythingllmResult.recordsProcessed +
       devinResult.recordsProcessed +
       astrbotResult.recordsProcessed +
+      openbitfunResult.recordsProcessed +
       kiloResult.recordsProcessed +
       mimoResult.recordsProcessed +
       zcodeResult.recordsProcessed +
@@ -3076,6 +3100,7 @@ async function cmdSync(argv, context = {}) {
       anythingllmResult.bucketsQueued +
       devinResult.bucketsQueued +
       astrbotResult.bucketsQueued +
+      openbitfunResult.bucketsQueued +
       kiloResult.bucketsQueued +
       mimoResult.bucketsQueued +
       zcodeResult.bucketsQueued +

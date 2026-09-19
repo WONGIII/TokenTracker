@@ -181,6 +181,8 @@ create table if not exists public.tokentracker_leaderboard_snapshots (
     deepseek_harness_tokens bigint      not null default 0,
     -- AstrBot (source "astrbot"), the local chat-agent runtime.
     astrbot_tokens          bigint      not null default 0,
+    -- OpenBitFun (source "openbitfun"), the Electron desktop agent.
+    openbitfun_tokens       bigint      not null default 0,
     other_tokens            bigint      not null default 0,
     display_name            text,
     avatar_url              text,
@@ -315,6 +317,7 @@ alter table public.tokentracker_leaderboard_snapshots
     add column if not exists kimi_tokens      bigint not null default 0,
     add column if not exists deepseek_harness_tokens bigint not null default 0,
     add column if not exists astrbot_tokens   bigint not null default 0,
+    add column if not exists openbitfun_tokens bigint not null default 0,
     add column if not exists other_tokens     bigint not null default 0;
 
 -- The leaderboard aggregate calls this per row; without it the refresh aborts

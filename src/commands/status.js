@@ -84,6 +84,8 @@ const {
   resolveClaudeScienceDbPaths,
   resolveAnythingllmDbPath,
   resolveAstrBotDbPaths,
+  resolveOpenBitFunHomes,
+  resolveOpenBitFunTurnFiles,
   resolveDevinDbPath,
   resolveGooseDbPath,
   listDroidSettingsFiles,
@@ -724,6 +726,15 @@ async function cmdStatus(argv = []) {
   const astrbotDbPaths = resolveAstrBotDbPaths(process.env);
   const astrbotInstalled = astrbotDbPaths.length > 0;
 
+  // OpenBitFun (GCWing/OpenBitFun) — passive reader of the per-turn JSON ledger.
+  // A data root is only "installed" once the resolver accepted it, and the turn
+  // files (not the roots) are what the sync actually parses, so both the root and
+  // the turn count are reported: a root with no turns is an accepted install with
+  // nothing counted yet.
+  const openbitfunHomes = resolveOpenBitFunHomes(process.env);
+  const openbitfunTurnFiles = await resolveOpenBitFunTurnFiles(process.env);
+  const openbitfunInstalled = openbitfunHomes.length > 0;
+
   // Trae SOLO (ByteDance AI IDE) — passive entitlement snapshot reader.
   const traeStoragePath = resolveTraeStoragePath(process.env);
   const traeInstalled = Boolean(traeStoragePath);
@@ -1076,6 +1087,13 @@ async function cmdStatus(argv = []) {
               detail: astrbotDbPaths.join(", "),
             }
           : { installed: false },
+        openbitfun: openbitfunInstalled
+          ? {
+              installed: true,
+              files: openbitfunTurnFiles.length,
+              detail: openbitfunHomes.join(", "),
+            }
+          : { installed: false },
         trae: traeInstalled
           ? {
               installed: true,
@@ -1270,6 +1288,9 @@ async function cmdStatus(argv = []) {
         : null,
       astrbotInstalled
         ? `- AstrBot: passive reader (${astrbotDbPaths.length} database${astrbotDbPaths.length !== 1 ? "s" : ""}: ${astrbotDbPaths.join(", ")})`
+        : null,
+      openbitfunInstalled
+        ? `- OpenBitFun: passive reader (${openbitfunTurnFiles.length} turn${openbitfunTurnFiles.length !== 1 ? "s" : ""} in ${openbitfunHomes.join(", ")})`
         : null,
       traeInstalled
         // Deliberately NOT "passive reader": every other line with that wording

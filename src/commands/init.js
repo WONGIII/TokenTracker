@@ -73,6 +73,7 @@ const {
   resolveUnslothDbPath,
   resolveAnythingllmDbPath,
   resolveAstrBotDbPaths,
+  resolveOpenBitFunHomes,
   resolveDevinDbPath,
   resolveReasonixHome,
   resolveTraeStoragePath,
@@ -924,6 +925,19 @@ async function applyIntegrationSetup({
     if (astrbotDbPaths.length > 0) {
       summary.push({
         label: "AstrBot",
+        status: "detected",
+        detail: "Passive reader (no hook needed)",
+      });
+    }
+  }
+
+  // OpenBitFun (GCWing/OpenBitFun): passive per-turn JSON reader, like the
+  // harness — no hook to install, the app already writes everything it needs.
+  {
+    const openbitfunHomes = resolveOpenBitFunHomes(process.env);
+    if (openbitfunHomes.length > 0) {
+      summary.push({
+        label: "OpenBitFun",
         status: "detected",
         detail: "Passive reader (no hook needed)",
       });

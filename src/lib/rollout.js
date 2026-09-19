@@ -22315,6 +22315,653 @@ async function parseDshIncremental({ sessionFiles, cursors, queuePath, onProgres
 }
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+// OpenBitFun (github.com/GCWing/OpenBitFun) — Electron desktop agent
+//
+// Data: <home>/.openbitfun/projects/<project-key>/sessions/<session-id>/
+//         turns/turn-NNNN.json   ← one file per user turn: the usage source
+//         metadata.json          ← session name/model/counts (no transcript)
+//         index.json, state.json, turn-catalog.json, token-anchors.json,
+//         prompt_cache.json, snapshots/, tool-results/   ← not accounting
+//
+// <project-key> is the workspace path with every ":", "\" and "." folded to "-"
+// and lowercased ("D:\opencode\tokentracker" -> "d--opencode-tokentracker"),
+// which is NOT losslessly reversible — a real "-" or "." in a directory name is
+// indistinguishable from a separator. The project directory name is therefore
+// the project identity, while the exact workspace path comes from
+// metadata.json's workspacePath, which is what makes project attribution exact.
+//
+// A turn file is the unit of usage: its tokenUsage object is PER TURN AND
+// INCREMENTAL, not cumulative (verified: one session's three consecutive turns
+// read 40411, 20873 and 764504 input tokens — a later turn is smaller, so the
+// per-turn values sum). A turn file is also rewritten IN PLACE while the turn is
+// still running, so the parser ledgers each turn's contribution and replaces it
+// on re-read instead of adding to it a second time.
+//
+// There is no cached-token split anywhere in this format: no cacheRead /
+// cacheCreation counter exists, and prompt_cache.json / token-anchors.json are
+// prompt-cache plumbing rather than accounting. cached_input_tokens and
+// cache_creation_input_tokens are therefore always 0, so cost is computed as if
+// every input token were a fresh one — which OVERSTATES cost for a turn that
+// largely reused its prompt cache. Nothing can fix that locally: the split is
+// simply not recorded.
+//
+// PRIVACY: a turn file also carries userMessage.content (the prompt) and
+// modelRounds[].textItems / .thinkingItems / .toolItems (assistant text,
+// reasoning, tool payloads). The reader below slices only the named metadata
+// scalars out of the raw JSON and never parses the document, so none of that
+// content can reach a bucket, a cursor, a log line or the session sidecar.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OPENBITFUN_SOURCE = "openbitfun";
+const OPENBITFUN_HOME_DIR_NAME = ".openbitfun";
+const OPENBITFUN_PROJECTS_DIR_NAME = "projects";
+const OPENBITFUN_SESSIONS_DIR_NAME = "sessions";
+const OPENBITFUN_TURNS_DIR_NAME = "turns";
+const OPENBITFUN_METADATA_FILE_NAME = "metadata.json";
+const OPENBITFUN_TURN_FILE_PATTERN = /^turn-\d+\.json$/;
+const OPENBITFUN_UNKNOWN_MODEL = "openbitfun-unknown";
+// A turn file embeds every round's assistant text, thinking and tool payloads,
+// so it grows with the turn (a verified one is 604 KB) even though only a
+// handful of scalars are projected out of it. Refuse anything past this bound
+// rather than materialize an unbounded file; the turn is re-evaluated on the
+// next sync instead of being acknowledged.
+const OPENBITFUN_TURN_MAX_BYTES = 64 * 1024 * 1024;
+
+function isOpenBitFunTurnFileName(name) {
+  return typeof name === "string" && OPENBITFUN_TURN_FILE_PATTERN.test(name);
+}
+
+// Every .openbitfun data root this machine can see, existence-checked,
+// de-duplicated and sorted so the parsed set is deterministic. An override that
+// names an already discovered root collapses onto that one entry rather than
+// being read twice.
+function resolveOpenBitFunHomes(env = process.env, deps = {}) {
+  const platform = deps.platform || process.platform;
+  const existsSync = deps.existsSync || fssync.existsSync;
+  const home =
+    deps.nativeHome ||
+    (platform === "win32"
+      ? env.USERPROFILE || env.HOME || os.homedir()
+      : env.HOME || os.homedir());
+  const envValue = (key) =>
+    typeof env?.[key] === "string" && env[key].trim() ? env[key].trim() : null;
+  const present = (candidate) => {
+    try {
+      return Boolean(existsSync(candidate));
+    } catch (_error) {
+      return false;
+    }
+  };
+
+  const candidates = [];
+  // An injected nativeHome is authoritative: the environment overrides below
+  // would otherwise let a developer's real install leak past test isolation,
+  // which is the one thing deps.nativeHome exists to prevent.
+  const injectedHome = typeof deps.nativeHome === "string" && deps.nativeHome ? deps.nativeHome : null;
+  if (!injectedHome) {
+    // TOKENTRACKER_OPENBITFUN_DIR names the data root itself (the directory that
+    // holds projects/); the _HOME spellings name the user home that contains it,
+    // which is what a user is more likely to already have in their environment.
+    const exactDir = envValue("TOKENTRACKER_OPENBITFUN_DIR");
+    if (exactDir) candidates.push(exactDir);
+    for (const key of ["TOKENTRACKER_OPENBITFUN_HOME", "OPENBITFUN_HOME"]) {
+      const value = envValue(key);
+      if (value) candidates.push(path.join(value, OPENBITFUN_HOME_DIR_NAME));
+    }
+  }
+  candidates.push(path.join(home, OPENBITFUN_HOME_DIR_NAME));
+
+  // Electron keeps the app's own per-user directory in %APPDATA%\<app>, and
+  // OpenBitFun writes its projects/ tree there when the app runs without a
+  // writable POSIX-style home (or from a portable install). Only admit that root
+  // when it actually carries a projects/ directory, so a plain Electron userData
+  // directory is never mistaken for a second data root. An injected nativeHome
+  // means the caller owns the whole home (tests), so environment-derived extra
+  // roots are skipped entirely rather than leaking the developer's real install.
+  if (!deps.nativeHome && platform === "win32") {
+    const appData = envValue("APPDATA");
+    const userDataRoot = appData ? path.join(appData, "openbitfun") : null;
+    if (
+      userDataRoot &&
+      present(userDataRoot) &&
+      present(path.join(userDataRoot, OPENBITFUN_PROJECTS_DIR_NAME))
+    ) {
+      candidates.push(userDataRoot);
+    }
+  }
+
+  return [...new Set(candidates.map((value) => path.resolve(value)))]
+    .filter((value) => present(value))
+    .sort();
+}
+
+// Walk one data root for its per-session directories. The tree is
+// <root>/projects/<project-key>/sessions/<session-id>/{turns,metadata.json}; a
+// session is returned even when it has no turn files yet (the browser filters
+// zero-token rows) so a session that has not finished its first turn still
+// becomes browsable once it does.
+async function listOpenBitFunSessions(root) {
+  const sessions = [];
+  const projectsRoot = path.join(root, OPENBITFUN_PROJECTS_DIR_NAME);
+  for (const project of await safeReadDir(projectsRoot)) {
+    if (!project.isDirectory()) continue;
+    const sessionsRoot = path.join(
+      projectsRoot,
+      project.name,
+      OPENBITFUN_SESSIONS_DIR_NAME,
+    );
+    for (const session of await safeReadDir(sessionsRoot)) {
+      if (!session.isDirectory()) continue;
+      const sessionDir = path.join(sessionsRoot, session.name);
+      const turnsDir = path.join(sessionDir, OPENBITFUN_TURNS_DIR_NAME);
+      const turnFiles = (await safeReadDir(turnsDir))
+        .filter((entry) => entry.isFile() && isOpenBitFunTurnFileName(entry.name))
+        .map((entry) => path.join(turnsDir, entry.name))
+        .sort();
+      sessions.push({
+        root,
+        projectKey: project.name,
+        sessionId: session.name,
+        sessionDir,
+        metadataPath: path.join(sessionDir, OPENBITFUN_METADATA_FILE_NAME),
+        turnFiles,
+      });
+    }
+  }
+  return sessions;
+}
+
+async function resolveOpenBitFunSessions(env = process.env, deps = {}) {
+  const sessions = [];
+  const seen = new Set();
+  for (const root of resolveOpenBitFunHomes(env, deps)) {
+    for (const session of await listOpenBitFunSessions(root)) {
+      if (seen.has(session.sessionDir)) continue;
+      seen.add(session.sessionDir);
+      sessions.push(session);
+    }
+  }
+  sessions.sort((a, b) => a.sessionDir.localeCompare(b.sessionDir));
+  return sessions;
+}
+
+async function resolveOpenBitFunTurnFiles(env = process.env, deps = {}) {
+  const out = [];
+  const seen = new Set();
+  for (const session of await resolveOpenBitFunSessions(env, deps)) {
+    for (const turnFile of session.turnFiles) {
+      if (seen.has(turnFile)) continue;
+      seen.add(turnFile);
+      out.push(turnFile);
+    }
+  }
+  out.sort((a, b) => a.localeCompare(b));
+  return out;
+}
+
+// metadata.json is the one OpenBitFun file that is safe to parse whole — it holds
+// session bookkeeping only, never the transcript — but it is still projected
+// field by field so nothing unreviewed can reach the sidecar or a cursor.
+async function readOpenBitFunSessionMetadata(metadataPath) {
+  if (typeof metadataPath !== "string" || !metadataPath) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(await fs.readFile(metadataPath, "utf8"));
+  } catch (_error) {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object") return null;
+  const numberOrNull = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? number : null;
+  };
+  return {
+    sessionId: normalizeModelInput(parsed.sessionId),
+    sessionName: normalizeModelInput(parsed.sessionName),
+    modelName: normalizeModelInput(parsed.modelName),
+    agentType: normalizeModelInput(parsed.agentType),
+    sessionKind: normalizeModelInput(parsed.sessionKind),
+    status: normalizeModelInput(parsed.status),
+    createdAtMs: numberOrNull(parsed.createdAt),
+    lastActiveAtMs: numberOrNull(parsed.lastActiveAt),
+    lastFinishedAtMs: numberOrNull(parsed.lastFinishedAt),
+    turnCount: numberOrNull(parsed.turnCount),
+    messageCount: numberOrNull(parsed.messageCount),
+    toolCallCount: numberOrNull(parsed.toolCallCount),
+    // The exact workspace the session ran in. Unlike the project directory name
+    // this is not an encoding, so it is what project attribution reports.
+    workspacePath: normalizeModelInput(parsed.workspacePath),
+    projectWorkspacePath: normalizeModelInput(parsed.projectWorkspacePath),
+  };
+}
+
+// turn.timestamp is epoch MILLISECONDS (verified against the installed app).
+// Values below 1e11 are read as seconds so a legacy or hand-edited file still
+// lands in the right half-hour instead of 1970 — the same defensive rule the
+// AstrBot parser applies to its Unix-seconds floats.
+function openBitFunTimestampMs(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return null;
+  return Math.round(number < 1e11 ? number * 1000 : number);
+}
+
+// Project the metadata the ledger needs out of one turn file WITHOUT parsing it.
+// findDshJsonProperty returns the raw slice of a single top-level key, so the
+// prompt, the assistant text, the thinking blocks and the tool payloads are
+// scanned over but never materialized as values — they cannot reach a bucket, a
+// cursor, a debug line, or the returned record.
+function extractOpenBitFunTurnMetadata(raw) {
+  const text = typeof raw === "string" ? raw : "";
+  const userMessageRaw = findDshJsonProperty(text, "userMessage");
+  const messageMetadataRaw = userMessageRaw
+    ? findDshJsonProperty(userMessageRaw, "metadata")
+    : null;
+  const usageRaw = findDshJsonProperty(text, "tokenUsage");
+  const usage = usageRaw && usageRaw[0] === "{" ? usageRaw : null;
+  return {
+    schemaVersion: parseDshJsonNumber(findDshJsonProperty(text, "schema_version")),
+    turnId: parseDshJsonString(findDshJsonProperty(text, "turnId")),
+    turnIndex: parseDshJsonNumber(findDshJsonProperty(text, "turnIndex")),
+    sessionId: parseDshJsonString(findDshJsonProperty(text, "sessionId")),
+    timestampMs: openBitFunTimestampMs(
+      parseDshJsonNumber(findDshJsonProperty(text, "timestamp")),
+    ),
+    // The model the agent actually resolved for the turn; metadata.json's
+    // modelName is the per-session fallback when a turn does not record one.
+    modelId: messageMetadataRaw
+      ? parseDshJsonString(
+          findDshJsonProperty(messageMetadataRaw, "runtime_resolved_model_id"),
+        )
+      : null,
+    usage: usage
+      ? {
+          inputTokens: parseDshJsonNumber(
+            findDshJsonProperty(usage, "inputTokens"),
+          ),
+          outputTokens: parseDshJsonNumber(
+            findDshJsonProperty(usage, "outputTokens"),
+          ),
+          totalTokens: parseDshJsonNumber(findDshJsonProperty(usage, "totalTokens")),
+        }
+      : null,
+  };
+}
+
+async function readOpenBitFunTurnText(filePath, maxBytes = OPENBITFUN_TURN_MAX_BYTES) {
+  let stat;
+  try {
+    stat = await fs.stat(filePath);
+  } catch (_error) {
+    return null;
+  }
+  if (!stat.isFile()) return null;
+  if (Number.isFinite(maxBytes) && maxBytes > 0 && stat.size > maxBytes) {
+    throw new Error("OpenBitFun turn file exceeds " + maxBytes + " bytes");
+  }
+  const text = await fs.readFile(filePath, "utf8");
+  // A short buffer means the file was rewritten under us mid-read; report it as a
+  // failed read so the next sync reconciles the turn instead of acknowledging a
+  // torn snapshot.
+  if (Buffer.byteLength(text, "utf8") < stat.size) {
+    throw new Error("OpenBitFun turn file was truncated while reading");
+  }
+  return text;
+}
+
+// Convert one projected turn into queue totals, or null when there is nothing to
+// count: a turn with no tokenUsage at all (verified: the openbitfun-control-*
+// sessions) or with an all-zero counter set is a turn the app never billed, and
+// a turn with no usable timestamp cannot be placed in a half-hour bucket. Both
+// are re-evaluated on the next sync.
+function openBitFunTurnTotals(turn) {
+  if (!turn || !turn.usage) return null;
+  const input = toNonNegativeInt(turn.usage.inputTokens);
+  const output = toNonNegativeInt(turn.usage.outputTokens);
+  if (input === 0 && output === 0) return null;
+  // The format has no cache split (see the section comment), so both cache
+  // columns stay 0. total_tokens is the sum of the columns the queue carries —
+  // the file's own totalTokens equals inputTokens+outputTokens in every verified
+  // turn, and recomputing keeps the queue invariant true even for a turn that is
+  // read while it is being rewritten.
+  const total = input + output;
+  return {
+    input_tokens: input,
+    cached_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+    output_tokens: output,
+    reasoning_output_tokens: 0,
+    total_tokens: total,
+    billable_total_tokens: total,
+    total_cost_usd: 0,
+    // One user turn is one conversation event. This follows the DeepSeek Harness
+    // precedent (one +1 per counted usage record) rather than AstrBot's
+    // per-conversation +1: a turn file IS the billing record, and a per-session
+    // count would need a second cross-file ledger to stay correct when a turn
+    // file is rewritten mid-flight.
+    conversation_count: 1,
+  };
+}
+
+// Ledger keys are file paths — untrusted strings on Windows, where a directory
+// can legally be named "__proto__". Reuse the AstrBot ledger's null-prototype
+// normalization so such a key stays an own entry that round-trips through
+// cursors.json instead of mutating the prototype chain (which would re-add that
+// turn's usage on every rescan).
+const openBitFunStringMap = astrbotStringMap;
+
+// Same transactional staging as the AstrBot parser: the shared normalizers alias
+// each bucket/totals object, and the enqueue helpers stamp queuedKey before the
+// append runs, so a failed append used to leave the caller's published state
+// polluted. Only openbitfun-owned entries get private copies; every other
+// provider's buckets stay shared read-only references.
+function openBitFunHourlyStageKeys(hourlyState) {
+  hourlyState.buckets = stageAstrBotBuckets(
+    hourlyState.buckets,
+    (key) =>
+      (normalizeSourceInput(parseBucketKey(key).source) || DEFAULT_SOURCE) ===
+      OPENBITFUN_SOURCE,
+  );
+  hourlyState.groupQueued =
+    hourlyState.groupQueued && typeof hourlyState.groupQueued === "object"
+      ? { ...hourlyState.groupQueued }
+      : {};
+}
+
+// Project bucket keys are "projectKey|source|hourStart", so the owning source is
+// the middle segment rather than the first one parseBucketKey reports.
+function openBitFunProjectStageKeys(projectState) {
+  projectState.buckets = stageAstrBotBuckets(projectState.buckets, (key) => {
+    const last = key.lastIndexOf(BUCKET_SEPARATOR);
+    const previous = last > 0 ? key.lastIndexOf(BUCKET_SEPARATOR, last - 1) : -1;
+    const source = previous >= 0 ? key.slice(previous + 1, last) : "";
+    return (
+      (normalizeSourceInput(source) || DEFAULT_SOURCE) === OPENBITFUN_SOURCE
+    );
+  });
+}
+
+// Remove one previously counted turn contribution. Called before the turn's
+// current contribution is added, so a file rewritten mid-turn is re-based
+// instead of double counted. subtractTotals clamps at zero, which is safe here
+// because the ledger only ever records what was added to these exact buckets.
+function subtractOpenBitFunContribution(state, touched, projectKey, entry) {
+  const totals = entry?.totals && typeof entry.totals === "object" ? entry.totals : null;
+  if (!totals || !entry?.bucketStart || !entry?.model) return;
+  if (projectKey) {
+    const bucket = getProjectBucket(
+      state,
+      projectKey,
+      OPENBITFUN_SOURCE,
+      entry.bucketStart,
+      null,
+    );
+    subtractTotals(bucket.totals, totals);
+    touched.add(projectBucketKey(projectKey, OPENBITFUN_SOURCE, entry.bucketStart));
+    return;
+  }
+  const bucket = getHourlyBucket(
+    state,
+    OPENBITFUN_SOURCE,
+    entry.model,
+    entry.bucketStart,
+  );
+  subtractTotals(bucket.totals, totals);
+  touched.add(bucketKey(OPENBITFUN_SOURCE, entry.model, entry.bucketStart));
+}
+
+async function parseOpenBitFunIncremental({
+  homes,
+  home,
+  cursors,
+  queuePath,
+  projectQueuePath,
+  onProgress,
+  env,
+  deps,
+} = {}) {
+  await ensureDir(path.dirname(queuePath));
+  if (!cursors || typeof cursors !== "object") cursors = {};
+
+  // An explicit homes list wins (a caller that already resolved the roots), then
+  // a single user home, then the full resolver. Tests inject deps.nativeHome so
+  // nothing can reach the developer's real ~/.openbitfun.
+  const requested =
+    Array.isArray(homes) && homes.length > 0
+      ? homes
+      : home
+        ? [path.join(path.resolve(String(home)), OPENBITFUN_HOME_DIR_NAME)]
+        : resolveOpenBitFunHomes(env || process.env, deps || {});
+  const roots = [
+    ...new Set(
+      requested
+        .filter((value) => typeof value === "string" && value.trim().length > 0)
+        .map((value) => path.resolve(value.trim())),
+    ),
+  ].sort();
+
+  const discovered = [];
+  const seenTurnFiles = new Set();
+  for (const root of roots) {
+    for (const session of await listOpenBitFunSessions(root)) {
+      for (const filePath of session.turnFiles) {
+        if (seenTurnFiles.has(filePath)) continue;
+        seenTurnFiles.add(filePath);
+        discovered.push({
+          filePath,
+          projectKey: session.projectKey,
+          sessionId: session.sessionId,
+          metadataPath: session.metadataPath,
+        });
+      }
+    }
+  }
+  discovered.sort((a, b) => a.filePath.localeCompare(b.filePath));
+
+  const priorState =
+    cursors.openbitfun && typeof cursors.openbitfun === "object"
+      ? cursors.openbitfun
+      : {};
+  // The ledger is retained for every turn ever counted, exactly like AstrBot's
+  // per-row ledger: it is what makes a rewritten (or temporarily unreadable) turn
+  // reconcile instead of double counting, and it keeps a turn whose file the app
+  // later pruned from being re-counted if that file comes back.
+  const fileState = openBitFunStringMap(priorState.files);
+  const metadataCache = new Map();
+
+  const hourlyState = normalizeHourlyState(cursors?.hourly);
+  openBitFunHourlyStageKeys(hourlyState);
+  const touchedBuckets = new Set();
+  const projectEnabled =
+    typeof projectQueuePath === "string" && projectQueuePath.length > 0;
+  const projectState = projectEnabled
+    ? normalizeProjectState(cursors?.projectHourly)
+    : null;
+  if (projectState) openBitFunProjectStageKeys(projectState);
+  const projectTouchedBuckets = projectEnabled ? new Set() : null;
+
+  const cb = typeof onProgress === "function" ? onProgress : null;
+  const total = discovered.length;
+  let recordsProcessed = 0;
+  let eventsAggregated = 0;
+
+  const reportProgress = (index) => {
+    if (!cb) return;
+    cb({
+      index: index + 1,
+      total,
+      recordsProcessed,
+      eventsAggregated,
+      bucketsQueued: touchedBuckets.size,
+    });
+  };
+
+  const metadataFor = async (metadataPath) => {
+    if (!metadataPath) return null;
+    if (metadataCache.has(metadataPath)) return metadataCache.get(metadataPath);
+    const metadata = await readOpenBitFunSessionMetadata(metadataPath).catch(
+      () => null,
+    );
+    metadataCache.set(metadataPath, metadata);
+    return metadata;
+  };
+
+  for (let index = 0; index < discovered.length; index++) {
+    const entry = discovered[index];
+    const filePath = entry.filePath;
+    let stat = null;
+    try {
+      stat = await fs.stat(filePath);
+    } catch (_error) {
+      stat = null;
+    }
+    if (!stat || !stat.isFile()) {
+      // A turn file can be removed between discovery and stat. Its ledger entry
+      // (and therefore its counted tokens) is deliberately kept: the usage was
+      // real, and keeping the entry is what stops a reappearing file from being
+      // counted a second time.
+      reportProgress(index);
+      continue;
+    }
+
+    const previous =
+      fileState[filePath] && typeof fileState[filePath] === "object"
+        ? fileState[filePath]
+        : null;
+    // Cheap unchanged check: a turn file that did not move cannot have new
+    // counters, so skip the read entirely.
+    const unchanged =
+      previous &&
+      Number(previous.size) === stat.size &&
+      Number(previous.mtimeMs) === stat.mtimeMs &&
+      Number(previous.inode) === stat.ino;
+    if (unchanged) {
+      reportProgress(index);
+      continue;
+    }
+
+    let turn;
+    try {
+      turn = extractOpenBitFunTurnMetadata(await readOpenBitFunTurnText(filePath));
+    } catch (error) {
+      if (process.env.TOKENTRACKER_DEBUG) {
+        process.stderr.write(
+          "[openbitfun] skipped " + filePath + ": " + (error?.message || error) + "\n",
+        );
+      }
+      // Do not acknowledge an unreadable turn: leaving the old ledger entry (and
+      // its counted tokens) in place means the next sync reconciles it properly.
+      reportProgress(index);
+      continue;
+    }
+    recordsProcessed += 1;
+
+    const metadata = await metadataFor(entry.metadataPath);
+    const model =
+      normalizeModelInput(turn.modelId) ||
+      normalizeModelInput(metadata?.modelName) ||
+      OPENBITFUN_UNKNOWN_MODEL;
+    const sessionId = normalizeModelInput(turn.sessionId) || entry.sessionId;
+    const bucketStart = turn.timestampMs
+      ? toUtcHalfHourStart(new Date(turn.timestampMs).toISOString())
+      : null;
+    const totals = openBitFunTurnTotals(turn);
+    const projectRef =
+      metadata?.workspacePath || metadata?.projectWorkspacePath || null;
+
+    // Replace, never add: a turn file is rewritten in place while its turn runs,
+    // so the contribution this parser recorded last time is subtracted first.
+    if (previous) {
+      subtractOpenBitFunContribution(hourlyState, touchedBuckets, null, previous);
+      if (projectState) {
+        subtractOpenBitFunContribution(
+          projectState,
+          projectTouchedBuckets,
+          previous.projectKey || entry.projectKey,
+          previous,
+        );
+      }
+    }
+
+    if (totals && bucketStart) {
+      const bucket = getHourlyBucket(hourlyState, OPENBITFUN_SOURCE, model, bucketStart);
+      addTotals(bucket.totals, totals);
+      touchedBuckets.add(bucketKey(OPENBITFUN_SOURCE, model, bucketStart));
+      // Project rows need a real path: enqueueTouchedProjectBuckets refuses a
+      // bucket with no project_ref, so a session whose metadata.json is missing
+      // contributes to the hourly buckets (nothing is lost from the totals) and
+      // simply has no project panel row instead of leaving a dead bucket behind.
+      if (projectState && projectRef) {
+        const projectBucket = getProjectBucket(
+          projectState,
+          entry.projectKey,
+          OPENBITFUN_SOURCE,
+          bucketStart,
+          projectRef,
+        );
+        addTotals(projectBucket.totals, totals);
+        projectTouchedBuckets.add(
+          projectBucketKey(entry.projectKey, OPENBITFUN_SOURCE, bucketStart),
+        );
+      }
+      eventsAggregated += 1;
+    }
+
+    // The ledger always records the turn's fingerprint, even when the turn is not
+    // countable (no tokenUsage at all, or an all-zero counter set — verified on
+    // the openbitfun-control-* sessions). The fingerprint is what keeps the next
+    // sync from re-reading a 250 KB turn file forever, and a turn file that never
+    // changes can never gain counters. The null contribution still lets a later
+    // finalized rewrite land: subtracting it is a no-op, so the turn is counted
+    // exactly once.
+    fileState[filePath] = {
+      inode: stat.ino,
+      size: stat.size,
+      mtimeMs: stat.mtimeMs,
+      sessionId,
+      projectKey: entry.projectKey,
+      model: totals ? model : null,
+      bucketStart: totals ? bucketStart : null,
+      totals: totals || null,
+      updatedAt: new Date().toISOString(),
+    };
+    reportProgress(index);
+  }
+
+  // Publish only after the queue appends succeed: a failed append leaves the
+  // cursors untouched, so a retry re-derives the same contribution and the
+  // latest-wins queue rows recover either way.
+  const bucketsQueued = await enqueueTouchedBuckets({
+    queuePath,
+    hourlyState,
+    touchedBuckets,
+  });
+  const projectBucketsQueued = projectEnabled
+    ? await enqueueTouchedProjectBuckets({
+        projectQueuePath,
+        projectState,
+        projectTouchedBuckets,
+      })
+    : 0;
+
+  const updatedAt = new Date().toISOString();
+  hourlyState.updatedAt = updatedAt;
+  cursors.hourly = hourlyState;
+  if (projectState) {
+    projectState.updatedAt = updatedAt;
+    cursors.projectHourly = projectState;
+  }
+  cursors.openbitfun = { version: 1, files: fileState, updatedAt };
+
+  return {
+    recordsProcessed,
+    eventsAggregated,
+    bucketsQueued,
+    projectBucketsQueued,
+  };
+}
+
+
 module.exports = {
   listRolloutFiles,
   listRolloutFilesDeep,
@@ -22543,4 +23190,15 @@ module.exports = {
   dshUsageToTotals,
   extractDshSessionUsage,
   parseDshIncremental,
+  // OpenBitFun (GCWing/OpenBitFun) — passive per-turn JSON reader
+  resolveOpenBitFunHomes,
+  listOpenBitFunSessions,
+  resolveOpenBitFunSessions,
+  resolveOpenBitFunTurnFiles,
+  isOpenBitFunTurnFileName,
+  readOpenBitFunSessionMetadata,
+  readOpenBitFunTurnText,
+  extractOpenBitFunTurnMetadata,
+  openBitFunTurnTotals,
+  parseOpenBitFunIncremental,
 };

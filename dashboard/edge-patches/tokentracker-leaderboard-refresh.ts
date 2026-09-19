@@ -595,6 +595,9 @@ const SOURCE_COLUMN_MAP: Record<string, string> = {
   // AstrBot writes source "astrbot". Its own column keeps the local chat-agent
   // runtime out of other_tokens on the leaderboard table.
   astrbot: "astrbot_tokens",
+  // OpenBitFun writes source "openbitfun". Its own column keeps this desktop
+  // agent (and the dsh turns it drives) out of other_tokens.
+  openbitfun: "openbitfun_tokens",
 };
 
 interface DateRange {
@@ -659,6 +662,7 @@ interface UserAgg {
   kimi_tokens: number;
   deepseek_harness_tokens: number;
   astrbot_tokens: number;
+  openbitfun_tokens: number;
   other_tokens: number;
   total_tokens: number;
   estimated_cost_usd: number;
@@ -678,6 +682,7 @@ function newUserAgg(): UserAgg {
     kimi_tokens: 0,
     deepseek_harness_tokens: 0,
     astrbot_tokens: 0,
+    openbitfun_tokens: 0,
     other_tokens: 0,
     total_tokens: 0,
     estimated_cost_usd: 0,
@@ -1298,6 +1303,7 @@ export default async function (req: Request): Promise<Response> {
         kimi_tokens: agg.kimi_tokens,
         deepseek_harness_tokens: agg.deepseek_harness_tokens,
         astrbot_tokens: agg.astrbot_tokens,
+        openbitfun_tokens: agg.openbitfun_tokens,
         other_tokens: agg.other_tokens,
         total_tokens: agg.total_tokens,
         estimated_cost_usd: Math.round(agg.estimated_cost_usd * 100) / 100,

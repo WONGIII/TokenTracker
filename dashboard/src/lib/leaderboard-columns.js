@@ -34,6 +34,15 @@ export const LEADERBOARD_TOKEN_COLUMNS = [
     icon: "/brand-logos/astrbot.svg",
     provider: "astrbot",
   },
+  // OpenBitFun (source "openbitfun") gets the same explicit `provider` override
+  // as the harness and AstrBot, so the mobile badge resolves its brand mark by
+  // name rather than from the icon filename.
+  {
+    key: "openbitfun_tokens",
+    copyKey: "provider.display.openbitfun",
+    icon: "/brand-logos/openbitfun.svg",
+    provider: "openbitfun",
+  },
   { key: "opencode_tokens", copyKey: "leaderboard.column.opencode", icon: "/brand-logos/opencode.svg" },
   { key: "openclaw_tokens", copyKey: "leaderboard.column.openclaw", icon: "/brand-logos/openclaw.svg" },
   { key: "hermes_tokens", copyKey: "leaderboard.column.hermes", icon: "/brand-logos/hermes.svg" },

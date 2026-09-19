@@ -557,6 +557,8 @@ const KNOWN_SOURCES = new Set([
   // AstrBot writes source "astrbot" — without it here its usage falls into the
   // profile modal's generic "other" bucket.
   "astrbot",
+  // OpenBitFun writes source "openbitfun" — same reason as AstrBot above.
+  "openbitfun",
 ]);
 function canonicalSource(s: string) {
   return KNOWN_SOURCES.has(s) ? s : "other";

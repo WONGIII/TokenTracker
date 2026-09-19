@@ -40,6 +40,11 @@ const {
   readDshSessionText,
   normalizeDshModelName,
   dshUsageToTotals,
+  resolveOpenBitFunSessions,
+  readOpenBitFunSessionMetadata,
+  readOpenBitFunTurnText,
+  extractOpenBitFunTurnMetadata,
+  openBitFunTurnTotals,
 } = require("./rollout");
 const { parseCodexRolloutFile } = require("./codex-rollout-parser");
 const { computeRowCost, getModelPricing } = require("./pricing");
@@ -1506,6 +1511,144 @@ function scanAstrBotSession({ dbPath, conversation, usageRows }) {
   });
 }
 
+/**
+ * OpenBitFun session scanner.
+ *
+ * OpenBitFun keeps one directory per session, <root>/projects/<project-key>/
+ * sessions/<session-id>/, holding a metadata.json plus one turns/turn-NNNN.json
+ * per user turn. A session is therefore the scan unit and its directory name is
+ * the identity; every turn is read through the usage parser's own projection
+ * (extractOpenBitFunTurnMetadata / openBitFunTurnTotals) so the browser's
+ * per-session totals cannot drift from the buckets sync writes for the same
+ * turns.
+ *
+ * Turn files also carry the prompt, the assistant text, the thinking blocks and
+ * the tool payloads; none of those are read here (or anywhere — see the privacy
+ * note in rollout.js). metadata.json is the only file in the tree that is safe
+ * to parse whole: it is session bookkeeping with no transcript.
+ */
+const OPENBITFUN_SESSION_SCAN_MAX_BYTES = 64 * 1024 * 1024;
+
+async function scanOpenBitFunSession({
+  projectKey,
+  sessionId,
+  sessionDir,
+  metadataPath,
+  turnFiles,
+}) {
+  const metadata = await readOpenBitFunSessionMetadata(metadataPath).catch(() => null);
+  const files = Array.isArray(turnFiles) ? turnFiles : [];
+  const tokens = emptyTotals();
+  const bounds = emptyBounds();
+  const byModel = new Map();
+  let usageEvents = 0;
+  let lastModel = null;
+
+  // The session's own timestamps bound it even when no turn of it carries
+  // counters yet (the openbitfun-control-* sessions are all like that), which is
+  // the same fallback the AstrBot scanner uses for its conversations.
+  const boundsFromMetadata = (value) => {
+    const ms = Number(value);
+    if (!Number.isFinite(ms) || ms <= 0) return;
+    updateBounds(bounds, new Date(ms).toISOString());
+  };
+  boundsFromMetadata(metadata?.createdAtMs);
+  boundsFromMetadata(metadata?.lastActiveAtMs);
+  boundsFromMetadata(metadata?.lastFinishedAtMs);
+
+  for (const turnFile of files) {
+    let turn = null;
+    try {
+      turn = extractOpenBitFunTurnMetadata(
+        await readOpenBitFunTurnText(turnFile, OPENBITFUN_SESSION_SCAN_MAX_BYTES),
+      );
+    } catch {
+      // A turn file is rewritten in place while its turn is still running, so a
+      // torn or oversized read is skipped and picked up by the next refresh
+      // rather than failing the whole session.
+      continue;
+    }
+    if (turn.timestampMs) {
+      updateBounds(bounds, new Date(turn.timestampMs).toISOString());
+    }
+    const totals = openBitFunTurnTotals(turn);
+    if (!totals) continue;
+    const model =
+      normalizeSessionModel(turn.modelId) ||
+      normalizeSessionModel(metadata?.modelName) ||
+      "unknown";
+    lastModel = model;
+    let usage = byModel.get(model);
+    if (!usage) {
+      usage = {
+        model,
+        input_tokens: 0,
+        cached_input_tokens: 0,
+        cache_creation_input_tokens: 0,
+        output_tokens: 0,
+        reasoning_output_tokens: 0,
+        total_tokens: 0,
+        usage_events: 0,
+      };
+      byModel.set(model, usage);
+    }
+    addTotals(usage, totals);
+    usage.usage_events += 1;
+    addTotals(tokens, totals);
+    usageEvents += 1;
+  }
+
+  return finalizeRecord({
+    version: SIDECAR_VERSION,
+    session_hash: sessionHash("openbitfun", sessionId || sessionDir),
+    session_id: sessionId || null,
+    title: cleanSessionTitle(metadata?.sessionName),
+    source: "openbitfun",
+    // The project directory name IS the workspace-path encoding (every ":", "\"
+    // and "." folded to "-"), so it is a stable cross-machine identity; the exact
+    // path is carried separately as project_ref, and only when metadata.json
+    // recorded one (the encoding cannot be reversed reliably).
+    project_key: projectKey || null,
+    project_ref: metadata?.workspacePath || metadata?.projectWorkspacePath || null,
+    model: lastModel || normalizeSessionModel(metadata?.modelName) || "unknown",
+    ...bounds,
+    // The on-disk turn files are the unit the usage parser counts, so the browser
+    // can never report fewer turns than were billed; metadata.turnCount covers a
+    // turn whose file the app archived away.
+    turns: Math.max(files.length, finite(metadata?.turnCount)),
+    edit_turns: 0,
+    retry_turns: 0,
+    subagent_calls: 0,
+    subagent_types: {},
+    tokens,
+    model_usage: [...byModel.values()],
+    usage_events: usageEvents,
+    usage_precision: usageEvents > 0 ? "reported" : "unavailable",
+    usage_is_incomplete: false,
+    cost_is_partial: false,
+    cost_source: "model_pricing",
+    provider_cost_usd: null,
+    model_calls: usageEvents,
+    api_duration_ms: 0,
+    context_tokens_used: 0,
+    context_window_tokens: 0,
+    context_usage_percent: 0,
+    // A count from metadata.json, never content.
+    tool_calls: finite(metadata?.toolCallCount),
+    tool_failures: 0,
+    error_count: 0,
+    compaction_count: 0,
+    provenance: {
+      source: "local-session-log",
+      confidence: usageEvents > 0 ? "observed" : "partial",
+      retry_confidence: "inferred",
+      content_retained: false,
+      usage: "turn.tokenUsage.inputTokens+outputTokens",
+      cost: "model_pricing",
+    },
+  });
+}
+
 // AstrBot conversations are rows, not files: discovery reads each database once
 // (metadata plus usage) and emits one descriptor per conversation. Doing it here
 // rather than per conversation inside the scan matters because the sidecar cache
@@ -1554,7 +1697,7 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const grokHome = resolveGrokHome(home);
   const claudeRoots = providerRoots(home, ".claude", env, deps);
   const codexRoots = providerRoots(home, ".codex", env, deps);
-  const [claudeGroups, codexGroups, archivedGroups, grok, dsh, astrbot] = await Promise.all([
+  const [claudeGroups, codexGroups, archivedGroups, grok, dsh, astrbot, openbitfun] = await Promise.all([
     Promise.all(claudeRoots.map((r) => listClaudeProjectFiles(path.join(r, "projects")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "sessions")))),
     Promise.all(codexRoots.map((r) => listRolloutFilesDeep(path.join(r, "archived_sessions")))),
@@ -1566,6 +1709,9 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
     // Same isolation as the harness home above: without the injected home a test
     // would read the developer's real AstrBot databases instead of its fixture.
     discoverAstrBotSessions(env, { ...deps, nativeHome: home }),
+    // Same isolation again: this is what keeps a test (and a caller that injected
+    // its own home) off the developer's real ~/.openbitfun install.
+    resolveOpenBitFunSessions(env, { ...deps, nativeHome: home }),
   ]);
   const allClaude = groupClaudeFilesAcrossRoots(claudeGroups);
   const codex = [...new Set(codexGroups.flat())];
@@ -1577,7 +1723,7 @@ async function discoverSessionFiles(home, env = process.env, deps = {}) {
   const claude = allClaude.filter((filePaths) => !filePaths.some((filePath) => filePath
     .split(path.sep)
     .some((segment) => segment.endsWith(CLAUDE_MEM_OBSERVER_PROJECT_SUFFIX))));
-  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok, dsh, astrbot };
+  return { claude, codex: groupCodexFiles([...codex, ...archived]), grok, dsh, astrbot, openbitfun };
 }
 
 function filesSignature(files) {
@@ -1721,6 +1867,12 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
     // One entry per database, not per conversation: the file list is what the
     // refresh signature hashes.
     ...[...new Set(discovered.astrbot.map((descriptor) => descriptor.dbPath))],
+    // Every turn file plus the session metadata: adding or rewriting a turn has
+    // to move the overall signature, not just the per-entry stat key below.
+    ...discovered.openbitfun.flatMap((descriptor) => [
+      descriptor.metadataPath,
+      ...descriptor.turnFiles,
+    ]),
   ]);
   if (!force && previousMeta?.version === SIDECAR_VERSION && previousMeta.signature === signature) {
     await writeAtomic(metaPath, `${JSON.stringify({ ...previousMeta, checked_at: new Date().toISOString() })}\n`);
@@ -1754,6 +1906,14 @@ async function buildSessionAnalyticsInternal({ home = os.homedir(), force = fals
         descriptor.conversation.conversation_id,
       ]),
       scan: () => scanAstrBotSession(descriptor),
+    })),
+    ...discovered.openbitfun.map((descriptor) => ({
+      source: "openbitfun",
+      // Every turn file of the session participates in the stat key, so appending
+      // or rewriting one turn rebuilds that session's row without rescanning its
+      // siblings.
+      filePath: [descriptor.metadataPath, ...descriptor.turnFiles],
+      scan: () => scanOpenBitFunSession(descriptor),
     })),
   ];
   // Files we could not turn into a row (permission denied, half-written line,
@@ -2357,6 +2517,7 @@ module.exports = {
   scanGrokSession,
   scanDshSession,
   scanAstrBotSession,
+  scanOpenBitFunSession,
   buildSessionAnalytics,
   summarizeSessions,
   listSessionsForBrowser,

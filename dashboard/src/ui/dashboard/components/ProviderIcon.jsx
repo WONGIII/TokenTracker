@@ -427,6 +427,10 @@ const PROVIDER_LOGO_MAP = {
   // <img> luminance treatment as AnythingLLM in PROVIDER_LOGO_CLASS_MAP.
   OMP: "/brand-logos/omp.svg",
   OPENCLAW: "/brand-logos/openclaw.svg",
+  // OpenBitFun (GCWing/OpenBitFun) publishes its mark as a currentColor outline
+  // trace with no colour of its own, so it needs the same luminance treatment at
+  // the image boundary as Qoder/Devin in PROVIDER_LOGO_CLASS_MAP below.
+  OPENBITFUN: "/brand-logos/openbitfun.svg",
   OPENCODE: "/brand-logos/opencode.svg",
   PI: "/brand-logos/pi.svg",
   // Dots Studio's sail mark (right triangle + hull bar), not the chat-app
@@ -459,6 +463,10 @@ const PROVIDER_LOGO_CLASS_MAP = {
   // as AnythingLLM: black on light backgrounds, native white on dark.
   PI: "brightness-0 dark:brightness-100",
   QODER: "dark:invert",
+  // The OpenBitFun mark is a single-colour outline trace (stroke=currentColor
+  // with no fill), and currentColor resolves to black inside an image element,
+  // so the glyph would vanish against the dark dashboard without this inversion.
+  OPENBITFUN: "dark:invert",
   // The Devin nodes mark ships as a black currentColor trace — same
   // dark-mode inversion treatment as the Qoder mark.
   DEVIN: "dark:invert",

@@ -152,3 +152,4 @@ pricing - 副本/
 # Local snapshot and side-by-side build workspaces (never part of the repo).
 _bak-*/
 _variants/
+.openbitfun/

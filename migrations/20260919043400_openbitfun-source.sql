@@ -1,22 +1,21 @@
--- AstrBot (github.com/AstrBotDevs/AstrBot) writes source "astrbot" into
+-- OpenBitFun (github.com/GCWing/OpenBitFun) writes source "openbitfun" into
 -- tokentracker_hourly. Without its own snapshot column the leaderboard refresh
--- folded that usage into other_tokens, so a user whose main agent is AstrBot
+-- folded that usage into other_tokens, so a user whose main agent is OpenBitFun
 -- saw the generic "Other" column as their biggest provider while the dashboard
--- listed AstrBot by name.
+-- listed OpenBitFun by name.
 --
 -- Only public.tokentracker_leaderboard_snapshots carries one column per
 -- provider. The v2 rollups (tokentracker_leaderboard_rollup_daily_v2 and
 -- tokentracker_leaderboard_rollup_total_v2) are keyed by
--- (user_id, source, model, pricing_tier), so they need no new column: astrbot
+-- (user_id, source, model, pricing_tier), so they need no new column: openbitfun
 -- rows already aggregate through the source dimension like every other
 -- provider, and leaderboard_usage_grouped() reads them from there.
 --
--- Mirrors how deepseek_harness_tokens was added in
--- 00000000000000_base-schema.sql, and stays idempotent so re-running the file
--- converges on the same schema.
+-- Mirrors 20260919003400_astrbot-source.sql, and stays idempotent so re-running
+-- the file converges on the same schema.
 
 alter table public.tokentracker_leaderboard_snapshots
-    add column if not exists astrbot_tokens bigint not null default 0;
+    add column if not exists openbitfun_tokens bigint not null default 0;
 
 -- PostgREST caches the schema, so a freshly added column stays invisible to the edge
 -- functions' queries until it reloads. Applying this file without the notify makes the

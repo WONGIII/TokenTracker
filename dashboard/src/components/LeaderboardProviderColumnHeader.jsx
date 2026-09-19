@@ -13,6 +13,10 @@ const INVERT_IN_DARK = new Set([
   "/brand-logos/kiro.svg",
   "/brand-logos/copilot.svg",
   "/brand-logos/hermes.svg",
+  // OpenBitFun's mark is a currentColor outline trace, i.e. solid black once an
+  // image element resolves currentColor — same dark-mode inversion as the
+  // harness mark.
+  "/brand-logos/openbitfun.svg",
 ]);
 
 /**

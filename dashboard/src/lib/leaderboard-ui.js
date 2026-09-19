@@ -81,6 +81,7 @@ export function prependMeRowToPage({ entries, me, meLabel }) {
     kimi_tokens: me?.kimi_tokens ?? "0",
     deepseek_harness_tokens: me?.deepseek_harness_tokens ?? "0",
     astrbot_tokens: me?.astrbot_tokens ?? "0",
+    openbitfun_tokens: me?.openbitfun_tokens ?? "0",
     other_tokens: me?.other_tokens ?? "0",
     total_tokens: me?.total_tokens ?? "0",
     estimated_cost_usd: me?.estimated_cost_usd ?? null,
